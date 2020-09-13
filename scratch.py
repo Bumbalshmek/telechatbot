@@ -7,6 +7,7 @@ import utils
 import sqlite3
 mevalues = []
 user_state = 0
+Ud = []
 Channel_Name = '@roflersss'
 class SQLighter:
 
@@ -29,23 +30,47 @@ class SQLighter:
         with self.connection:
             result = self.cursor.execute('SELECT * FROM' +config.table_name ).fetchall()
             return len(result)
+
     def new_row(self, user_id):
+        """Добавление новой строки в таблицу(все ячейки кроме айди = Null)"""
         with self.connection:
             self.cursor.execute('INSERT INTO '+ config.table_name +' ("user_id") VALUES ("'+str(user_id)+'")')
+
     def check_row(self,user_id):
+        """Проверяет таблицу на наличие определенного айди в ней"""
         with self.connection:
             result = self.cursor.execute('SELECT count(user_id)>0 FROM '+ config.table_name +' WHERE user_id = "'+str(user_id)+'"').fetchall()
             return result
+
+    def show_info(self,user_id):
+        """Выдача данных из одной строки таблицы списком"""
+        with self.connection:
+            information = self.cursor.execute('SELECT * FROM ' + config.table_name +' WHERE user_id = "'+str(user_id)+ '"').fetchall()
+            return information
+
+    def add_to_row(self,text,user_id):
+        """ Добавление контента в определенную строку таблицы """
+        with self.connection:
+            roflinochka = self.cursor.execute('UPDATE ' + config.table_name + ' SET lookingfor = '+text+' WHERE user_id  = "'+str(user_id)+'"')
+            return roflinochka
     def close(self):
         """ Закрываем текущее соединение с БД """
         self.connection.close()
+
 bot = telebot.TeleBot(config.TOKEN)
 @bot.message_handler(commands=['test'])
 def chenit(message):
     db_worker = SQLighter(config.database_name)
     var = db_worker.check_row(message.chat.id)
     if var[0] == (1,):
-        bot.send_message(message.chat.id,'id exists')
+        bot.send_message(message.chat.id,'id exists, enter your age')
+        Ud.append(db_worker.show_info(message.chat.id))
+        print(db_worker.show_info(message.chat.id))
+        for i in range(len(Ud)):
+            Ud[i-1][0] = list(Ud[i-1][0])
+        for i in range(len(Ud)):
+            if Ud[i-1][0][0] == message.chat.id:
+                Ud[i-1][0][7] = 1
     else :
         bot.send_message(message.chat.id,'id not exists and will be added')
         db_worker.new_row(message.chat.id)
@@ -124,5 +149,5 @@ def compliments(message):
     else:
         bot.send_message(message.chat.id, 'Выглядишь Почти Также Как Мэйби Бэйби')
 keyboard1 = telebot.types.ReplyKeyboardMarkup()
-keyboard1.row('Привет', 'Пока','Я Саша','/games','/showmyid')
+keyboard1.row('Привет', 'Пока','Я Саша','/showmyid')
 bot.polling(none_stop=True)
