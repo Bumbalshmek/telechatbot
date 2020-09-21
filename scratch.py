@@ -60,9 +60,9 @@ class SQLighter:
     def send_info(self,user_data_list):
         """Отправление полной анкеты в базу данных"""
         with self.connection:
-            sender = self.cursor.execute('UPDATE ' + config.table_name + ' SET sex = '+str(user_data_list[1])+',' 
-            'age = '+str(user_data_list[2])+', city = "'+user_data_list[3]+'", lookingfor = '+str(user_data_list[4])+ ', opisaniye = "'+user_data_list[5]+'"'
-            ', image = "'+str(user_data_list[6])+'", state = '+str(user_data_list[7])+' WHERE user_id  = "'+ str(user_data_list[0]) +'"')
+            sender = self.cursor.execute('UPDATE ' + config.table_name + ' SET uuser_name = "'+str(user_data_list[1])+'", sex = '+str(user_data_list[2])+',' 
+            'age = '+str(user_data_list[3])+', city = "'+user_data_list[4]+'", lookingfor = '+str(user_data_list[5])+ ', opisaniye = "'+user_data_list[6]+'"'
+            ', image = "'+str(user_data_list[7])+'", state = '+str(user_data_list[8])+' WHERE user_id  = "'+ str(user_data_list[0]) +'"')
         return sender
     def close(self):
         """ Закрываем текущее соединение с БД """
@@ -76,8 +76,17 @@ def chenit(message):
     varr = db_worker.check_state(message.chat.id)
     if var[0] == (1,) and varr[0] == (1,):
         bot.send_message(message.chat.id,'id exists, your profile saved')
+    elif var[0] == (1,) :
+        bot.send_message(message.chat.id,'id exists, but your profile is not completed enter name')
+        Ud.append(db_worker.show_info(message.chat.id))
+        print(db_worker.show_info(message.chat.id))
+        for i in range(len(Ud)):
+            Ud[i-1][0] = list(Ud[i-1][0])
+        for i in range(len(Ud)):
+            if Ud[i-1][0][0] == message.chat.id:
+                Ud[i-1][0][8] = 1
     else :
-        bot.send_message(message.chat.id,'id not exists and will be added enter your sex male/female')
+        bot.send_message(message.chat.id,'id not exists and will be added enter your name')
         db_worker.new_row(message.chat.id)
         Ud.append(db_worker.show_info(message.chat.id))
         print(db_worker.show_info(message.chat.id))
@@ -85,41 +94,7 @@ def chenit(message):
             Ud[i-1][0] = list(Ud[i-1][0])
         for i in range(len(Ud)):
             if Ud[i-1][0][0] == message.chat.id:
-                Ud[i-1][0][7] = 1
-@bot.message_handler(commands=['goback'])
-def goback(message):
-    global user_state
-    user_state = message.chat.id
-    mevalues.clear()
-    bot.send_message(message.chat.id,'Вы вернулись в стартовое меню бота')
-@bot.message_handler(commands=['games'])
-def game(message):
-    global user_state
-    user_state = message.chat.id + 1
-    bot.send_message(message.chat.id, 'Введите название игры')
-@bot.message_handler(func=lambda message: user_state - message.chat.id == 1)
-def r(message):
-    mevalues.append(message.text)
-    global user_state
-    user_state = message.chat.id + 2
-    bot.send_message(message.chat.id, 'Введите статус прохождения(пройдено или нет)')
-@bot.message_handler(func=lambda message: user_state - message.chat.id == 2)
-def rr(message):
-    mevalues.append(message.text)
-    global user_state
-    user_state = message.chat.id + 3
-    bot.send_message(message.chat.id, 'Введите оценку')
-@bot.message_handler(func=lambda message: user_state - message.chat.id == 3)
-def rrrr(message):
-    mevalues.append(message.text)
-    db_worker = SQLighter(config.database_name)
-    db_worker.new_row(mevalues[0], mevalues[1], mevalues[2])
-    db_worker.close()
-    global user_state
-    user_state = 0
-    mevalues.clear()
-    bot.send_message(message.chat.id,'В базу данных внесена новая игра')
-    bot.send_message(Channel_Name, 'New rofl')
+                Ud[i-1][0][8] = 1
 @bot.message_handler(commands=["start"])
 def start_message(message):
     bot.send_message(message.chat.id, 'Вы запустили бота(список всех моих команд находится на клавиатуре)', reply_markup=keyboard1)
@@ -128,84 +103,82 @@ def showid(message):
     bot.send_message(message.chat.id, message.chat.id)
 @bot.message_handler(content_types=["text"])
 def send_text(message): # Название функции не играет никакой роли, в принципе
-    for i in range(len(Ud)):
-        # gender block
-        if Ud[i-1][0][7] == 1 and Ud[i-1][0][0] == message.chat.id:
-            if message.text.lower() == 'male':
-                Ud[i - 1][0][1] = 1
-                Ud[i - 1][0][7] = 2
-                bot.send_message(message.chat.id, 'enter your age')
-            elif message.text.lower() == 'female':
-                Ud[i - 1][0][1] = 0
-                Ud[i - 1][0][7] = 2
-                bot.send_message(message.chat.id, 'enter your age')
-            else :
-                bot.send_message(message.chat.id,'please enter correct answer')
-        #age block
-        elif Ud[i - 1][0][7] == 2 and Ud[i-1][0][0] == message.chat.id :
-            if int(message.text) > 10 and int(message.text) < 99:
-                Ud[i - 1][0][2] = message.text
-                Ud[i - 1][0][7] = 3
-                bot.send_message(message.chat.id, 'Where you live')
-            else:
-                bot.send_message(message.chat.id,'incorrent answer')
-        #city block
-        elif Ud[i - 1][0][7] == 3 and Ud[i-1][0][0] == message.chat.id:
-            if type(message.text) == str:
-                Ud[i - 1][0][3] = message.text
-                Ud[i - 1][0][7] = 4
-                bot.send_message(message.chat.id,'Who Are You Looking For?(male/female/everyone)')
-            else:
-                bot.send_message(message.chat.id,'incorrect answer')
-        #lookingfor block
-        elif Ud[i - 1][0][7] == 4 and Ud[i-1][0][0] == message.chat.id:
-            if message.text.lower() == 'male':
-                Ud[i-1][0][4] = 1
-                Ud[i-1][0][7] = 5
-                bot.send_message(message.chat.id, 'now write a little about yourself')
-            elif message.text.lower() == 'female':
-                Ud[i-1][0][4] = 2
-                Ud[i-1][0][7] = 5
-                bot.send_message(message.chat.id, 'now write a little about yourself')
-            elif message.text.lower() == 'everyone':
-                Ud[i-1][0][4] = 3
-                Ud[i-1][0][7] = 5
-                bot.send_message(message.chat.id, 'now write a little about yourself')
-            else:
-                bot.send_message(message.chat.id,'incorrect answer')
-        elif Ud[i - 1][0][7] == 5 and Ud[i-1][0][0] == message.chat.id:
-            Ud[i - 1][0][5] = message.text
-            Ud[i - 1][0][7] = 6
-            bot.send_message(message.chat.id, 'send me photodont send me photo(this func isnt working)')
-        elif Ud[i - 1][0][7] == 6 and Ud[i-1][0][0] == message.chat.id:
-            Ud[i - 1][0][6] = message.text
-            db_worker = SQLighter(config.database_name)
-            db_worker.send_info(Ud[i-1][0])
-            print(Ud[i-1][0])
-            bot.send_message(message.chat.id, 'your profile succesfully saved')
-        else :
-            bot.send_message(message.chat.id,'someone is creating profile with you) or you are writing something useless')
-
+    if len(Ud) > 0 :
+        for i in range(len(Ud)):
+            #name block
+            if Ud[i-1][0][8] == 1 and Ud[i-1][0][0] == message.chat.id:
+                Ud[i-1][0][1] = message.text
+                Ud[i-1][0][8] = 2
+                bot.send_message(message.chat.id, 'enter your sex male/female')
+            # gender block
+            elif Ud[i-1][0][8] == 2 and Ud[i-1][0][0] == message.chat.id:
+                if message.text.lower() == 'male':
+                    Ud[i - 1][0][2] = 1
+                    Ud[i - 1][0][8] = 3
+                    bot.send_message(message.chat.id, 'enter your age')
+                elif message.text.lower() == 'female':
+                    Ud[i - 1][0][2] = 0
+                    Ud[i - 1][0][8] = 3
+                    bot.send_message(message.chat.id, 'enter your age')
+                else :
+                    bot.send_message(message.chat.id,'please enter correct answer')
+            #age block
+            elif Ud[i - 1][0][8] == 3 and Ud[i-1][0][0] == message.chat.id :
+                if int(message.text) > 10 and int(message.text) < 99:
+                    Ud[i - 1][0][3] = message.text
+                    Ud[i - 1][0][8] = 4
+                    bot.send_message(message.chat.id, 'Where you live')
+                else:
+                    bot.send_message(message.chat.id,'incorrent answer')
+            #city block
+            elif Ud[i - 1][0][8] == 4 and Ud[i-1][0][0] == message.chat.id:
+                if type(message.text) == str:
+                    Ud[i - 1][0][4] = message.text
+                    Ud[i - 1][0][8] = 5
+                    bot.send_message(message.chat.id,'Who Are You Looking For?(male/female/everyone)')
+                else:
+                    bot.send_message(message.chat.id,'incorrect answer')
+            #lookingfor block
+            elif Ud[i - 1][0][8] == 5 and Ud[i-1][0][0] == message.chat.id:
+                if message.text.lower() == 'male':
+                    Ud[i-1][0][5] = 1
+                    Ud[i-1][0][8] = 6
+                    bot.send_message(message.chat.id, 'now write a little about yourself')
+                elif message.text.lower() == 'female':
+                    Ud[i-1][0][5] = 2
+                    Ud[i-1][0][8] = 6
+                    bot.send_message(message.chat.id, 'now write a little about yourself')
+                elif message.text.lower() == 'everyone':
+                    Ud[i-1][0][5] = 3
+                    Ud[i-1][0][8] = 6
+                    bot.send_message(message.chat.id, 'now write a little about yourself')
+                else:
+                    bot.send_message(message.chat.id,'incorrect answer')
+            #self description block
+            elif Ud[i - 1][0][8] == 6 and Ud[i-1][0][0] == message.chat.id:
+                Ud[i - 1][0][6] = message.text
+                Ud[i - 1][0][8] = 7
+                bot.send_message(message.chat.id, 'send me your profile pic photo')
+                print(Ud)
+    else:
+        bot.send_message(message.chat.id,'please type /test')
     f = open('logi.txt','a')
     f.write(time.ctime(time.time())+' '+message.text     + '\n')
     f.close()
 @bot.message_handler(content_types='photo')
-def compliments(message):
-    a = random.randint(1, 100)
-    if a <= 15:
-        bot.send_message(message.chat.id, 'Неплохо Выглядишь')
-    elif a<= 30:
-        bot.send_message(message.chat.id, 'Выглядишь Изумительно')
-    elif a<=45:
-        bot.send_message(message.chat.id, 'Выглядишь Шикарно')
-    elif a<=60:
-        bot.send_message(message.chat.id, 'Выглядишь Умопомрачительно')
-    elif a<=75:
-        bot.send_message(message.chat.id, 'Выглядишь Невероятно')
-    elif a<=90:
-        bot.send_message(message.chat.id, 'Выглядишь Классно')
-    else:
-        bot.send_message(message.chat.id, 'Выглядишь Почти Также Как Мэйби Бэйби')
+def profilepic(message):
+    for i in range (len(Ud)):
+        if Ud[i-1][0][8] == 7 and Ud[i-1][0][0] == message.chat.id:
+            Ud[i-1][0][7] = message.photo[0].file_id
+            db_worker = SQLighter(config.database_name)
+            db_worker.send_info(Ud[i - 1][0])
+            bot.send_message(message.chat.id,'Your profile:',disable_notification = True)
+            bot.send_photo(message.chat.id, Ud[i-1][0][7], caption= Ud[i-1][0][1]+', '+Ud[i-1][0][3]+', '+Ud[i-1][0][4]+'\n'+Ud[i-1][0][6])
+            for k in range (len(Ud)):
+                if Ud[k-1][0][0] == message.chat.id:
+                    Ud.pop(k-1)
+
+            bot.send_message(Channel_Name, 'New rofl')
 keyboard1 = telebot.types.ReplyKeyboardMarkup()
 keyboard1.row('Привет', 'Пока','Я Саша','/showmyid')
 bot.polling(none_stop=True)
