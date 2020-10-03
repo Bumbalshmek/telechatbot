@@ -83,6 +83,12 @@ class SQLighter:
         with self.connection:
             ids = self.cursor.execute('SELECT user_id FROM '+config.table_name+' WHERE NOT user_id = "'+str(user_id)+'"').fetchall()
             return ids
+    def create_match(self,user_id,matched_id):
+        with self.connection:
+            self.cursor.execute('INSERT INTO matches ("user_id","match_user_id") VALUES ('+str(user_id)+','+str(matched_id)+')')
+    def create_match_and_text(self,user_id,matched_id,text):
+        with self.connection:
+            self.cursor.execute('INSERT INTO matches ("user_id","match_user_id","reaction") VALUES ('+str(user_id)+','+str(matched_id)+',"'+str(text)+'")')
     def close(self):
         """ Закрываем текущее соединение с БД """
         self.connection.close()
@@ -186,7 +192,7 @@ def send_text(message):# Название функции не играет ни�
                 db_worker = SQLighter(config.database_name)
                 first_check = db_worker.check_state(message.chat.id)
                 idii_list = db_worker.id_list(message.chat.id)
-                if first_check == [(message.chat.id, 8,)]:
+                if first_check == [(message.chat.id, 8,)] and message.text == str(1):
                     # first_check passed (profile exists and fully filled)
                     preferences_check = db_worker.preference_check(message.chat.id)
                     if preferences_check == [(1,)]:
@@ -199,11 +205,10 @@ def send_text(message):# Название функции не играет ни�
                                 bot.send_message('net anket(')
                             else:
                                 bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
-                                            caption=db_worker.show_info(profiles_list[-1])[0][1] +
+                                             caption=db_worker.show_info(profiles_list[-1])[0][1] +
                                                     ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                                     + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
-                                                    db_worker.show_info(profiles_list[-1])[0][6])
-                                profiles_list.pop()
+                                                     db_worker.show_info(profiles_list[-1])[0][6])
                                 profiles_dict.update({message.chat.id : profiles_list})
                                 print(profiles_dict)
                                 db_worker.state_update(message.chat.id,9)
@@ -220,7 +225,6 @@ def send_text(message):# Название функции не играет ни�
                                                    ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                                    + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
                                                    db_worker.show_info(profiles_list[-1])[0][6])
-                            profiles_list.pop()
                             db_worker.state_update(message.chat.id, 9)
                             profiles_dict.update({message.chat.id : profiles_list})
                             print(profiles_dict)
@@ -236,11 +240,35 @@ def send_text(message):# Название функции не играет ни�
                                                     ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                                     + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
                                                     db_worker.show_info(profiles_list[-1])[0][6])
-                            profiles_list.pop()
                             profiles_dict.update({message.chat.id : profiles_list})
                             print(profiles_dict)
                             db_worker.state_update(message.chat.id, 9)
-                elif first_check == [(message.chat.id, 9,)] and message.text == 1:
+                elif first_check == [(message.chat.id, 9,)] and message.text == str(1):
+                    if len(profiles_dict[message.chat.id]) > 0 :
+                        db_worker.create_match(message.chat.id, profiles_dict[message.chat.id][-1])
+                        profiles_dict[message.chat.id].pop()
+                    if len(profiles_dict[message.chat.id]) == 0:
+                        bot.send_message(message.chat.id, 'net anket(')
+                    else:
+                        bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+                                       caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
+                                               ', ' + str(
+                                           db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
+                                               + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
+                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
+                elif first_check == [(message.chat.id, 9,)] and message.text == str(2):
+                    if len(profiles_dict[message.chat.id]) == 0:
+                        bot.send_message(message.chat.id, 'net anket(')
+                    else:
+                        db_worker.state_update(message.chat.id, 10)
+                        bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+                                       caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
+                                               ', ' + str(
+                                           db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
+                                               + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
+                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
+                        db_worker.state_update(message.chat.id, 10)
+                elif first_check == [(message.chat.id, 9,)] and message.text == str(3):
                     if len(profiles_dict[message.chat.id]) == 0:
                         bot.send_message(message.chat.id, 'net anket(')
                     else:
@@ -251,13 +279,42 @@ def send_text(message):# Название функции не играет ни�
                                                + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
                         profiles_dict[message.chat.id].pop()
+                elif first_check == [(message.chat.id, 10,)]:
+                    if message.text != str(1):
+                        db_worker.create_match_and_text(message.chat.id, profiles_dict[message.chat.id][-1],
+                                                            message.text)
+                        if len(profiles_dict[message.chat.id]) > 0:
+                            profiles_dict[message.chat.id].pop()
+                        if len(profiles_dict[message.chat.id]) == 0:
+                            db_worker.state_update(message.chat.id, 9)
+                            bot.send_message(message.chat.id, 'net anket(')
+                        else:
+                            bot.send_photo(message.chat.id,
+                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+                                               caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
+                                                       ', ' + str(
+                                                   db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
+                                                       + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][
+                                                           4] + '\n' +
+                                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
+                            db_worker.state_update(message.chat.id, 9)
+                    else:
+                        db_worker.state_update(message.chat.id, 9)
+                        bot.send_photo(message.chat.id,
+                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+                                       caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
+                                               ', ' + str(
+                                           db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
+                                               + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][
+                                                   4] + '\n' +
+                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
                 else:
                     bot.send_message(message.chat.id,'incorrect answer')
     else:
         db_worker = SQLighter(config.database_name)
         first_check = db_worker.check_state(message.chat.id)
         idii_list = db_worker.id_list(message.chat.id)
-        if first_check == [(message.chat.id,8,)]:
+        if first_check == [(message.chat.id,8,)] and message.text == str(1):
             #first_check passed (profile exists and fully filled)
             preferences_check = db_worker.preference_check(message.chat.id)
             if preferences_check == [(1,)]:
@@ -273,7 +330,6 @@ def send_text(message):# Название функции не играет ни�
                                            ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                            + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
                                            db_worker.show_info(profiles_list[-1])[0][6])
-                    profiles_list.pop()
                     profiles_dict.update({message.chat.id : profiles_list})
                     print(profiles_dict)
                     db_worker.state_update(message.chat.id, 9)
@@ -290,7 +346,6 @@ def send_text(message):# Название функции не играет ни�
                                            ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                            + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
                                            db_worker.show_info(profiles_list[-1])[0][6])
-                    profiles_list.pop()
                     profiles_dict.update({message.chat.id : profiles_list})
                     print(profiles_dict)
                     db_worker.state_update(message.chat.id, 9)
@@ -307,11 +362,28 @@ def send_text(message):# Название функции не играет ни�
                                             ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                          + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
                                          db_worker.show_info(profiles_list[-1])[0][6])
-                    profiles_list.pop()
                     profiles_dict.update({message.chat.id : profiles_list})
                     print(profiles_dict)
                     db_worker.state_update(message.chat.id, 9)
         elif first_check == [(message.chat.id, 9,)] and message.text == str(1):
+            if len(profiles_dict[message.chat.id]) > 0:
+                db_worker.create_match(message.chat.id, profiles_dict[message.chat.id][-1])
+                profiles_dict[message.chat.id].pop()
+            if len(profiles_dict[message.chat.id]) == 0:
+                bot.send_message(message.chat.id,'net anket(')
+            else:
+                bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+                               caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
+                                       ', ' + str(db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
+                                       + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
+                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
+        elif first_check == [(message.chat.id, 9,)] and message.text == str(2):
+            if len(profiles_dict[message.chat.id]) == 0:
+                bot.send_message(message.chat.id,'net anket(')
+            else:
+                db_worker.state_update(message.chat.id, 10)
+                bot.send_message(message.chat.id,'send message to chel or type (1) to go back')
+        elif first_check == [(message.chat.id, 9,)] and message.text == str(3):
             if len(profiles_dict[message.chat.id]) == 0:
                 bot.send_message(message.chat.id,'net anket(')
             else:
@@ -321,6 +393,29 @@ def send_text(message):# Название функции не играет ни�
                                        + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
                                        db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
                 profiles_dict[message.chat.id].pop()
+        elif first_check ==[(message.chat.id,10,)]:
+            if message.text != str(1):
+                db_worker.create_match_and_text(message.chat.id, (profiles_dict[message.chat.id][-1]), message.text)
+                if len(profiles_dict[message.chat.id]) > 0:
+                    profiles_dict[message.chat.id].pop()
+                if len(profiles_dict[message.chat.id]) == 0:
+                    bot.send_message(message.chat.id, 'net anket(')
+                else:
+                    bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+                                   caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
+                                           ', ' + str(
+                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
+                                           + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
+                                           db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
+                db_worker.state_update(message.chat.id,9)
+            else:
+                db_worker.state_update(message.chat.id,9)
+                bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+                               caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
+                                       ', ' + str(
+                                   db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
+                                       + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
+                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
         else:
             bot.send_message(message.chat.id, 'incorrect answer')
 @bot.message_handler(content_types="photo")
