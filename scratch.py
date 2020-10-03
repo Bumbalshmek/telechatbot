@@ -201,6 +201,7 @@ def send_text(message):# Название функции не играет ни�
                         for i in range(len(idii_list)):
                             if db_worker.gender_check(idii_list[i - 1][0]) == [(1,)]:
                                 profiles_list.append(idii_list[i - 1][0])
+                                random.shuffle(profiles_list)
                             if len(profiles_list) == 0:
                                 bot.send_message('net anket(')
                             else:
@@ -217,6 +218,7 @@ def send_text(message):# Название функции не играет ни�
                         for i in range(len(db_worker.id_list(message.chat.id))):
                             if db_worker.gender_check(idii_list[i - 1][0]) == [(0,)]:
                                 profiles_list.append(idii_list[i - 1][0])
+                                random.shuffle(profiles_list)
                         if len(profiles_list) == 0:
                             bot.send_message('net anket(')
                         else:
@@ -232,6 +234,7 @@ def send_text(message):# Название функции не играет ни�
                         profiles_list = []
                         for i in range(len(db_worker.id_list(message.chat.id))):
                             profiles_list.append(idii_list[i - 1][0])
+                            random.shuffle(profiles_list)
                         if len(profiles_list) == 0:
                             bot.send_message('net anket(')
                         else:
@@ -269,6 +272,8 @@ def send_text(message):# Название функции не играет ни�
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
                         db_worker.state_update(message.chat.id, 10)
                 elif first_check == [(message.chat.id, 9,)] and message.text == str(3):
+                    if len(profiles_dict[message.chat.id]) > 0 :
+                        profiles_dict[message.chat.id].pop()
                     if len(profiles_dict[message.chat.id]) == 0:
                         bot.send_message(message.chat.id, 'net anket(')
                     else:
@@ -322,6 +327,7 @@ def send_text(message):# Название функции не играет ни�
                 for i in range (len(idii_list)):
                     if db_worker.gender_check(idii_list[i-1][0]) == [(1,)]:
                         profiles_list.append(idii_list[i-1][0])
+                        random.shuffle(profiles_list)
                 if len(profiles_list) == 0:
                     bot.send_message(message.chat.id,'net anket(')
                 else:
@@ -338,6 +344,7 @@ def send_text(message):# Название функции не играет ни�
                 for i in range (len(db_worker.id_list(message.chat.id))):
                     if db_worker.gender_check(idii_list[i-1][0]) == [(0,)]:
                         profiles_list.append(idii_list[i-1][0])
+                        random.shuffle(profiles_list)
                 if len(profiles_list) == 0:
                     bot.send_message(message.chat.id,'net anket(')
                 else:
@@ -353,6 +360,7 @@ def send_text(message):# Название функции не играет ни�
                 profiles_list = []
                 for i in range(len(db_worker.id_list(message.chat.id))):
                     profiles_list.append(idii_list[i - 1][0])
+                    random.shuffle(profiles_list)
                 bot.send_message(message.chat.id,'thats more like it')
                 if len(profiles_list) == 0:
                     bot.send_message(message.chat.id,'net anket(')
@@ -384,6 +392,8 @@ def send_text(message):# Название функции не играет ни�
                 db_worker.state_update(message.chat.id, 10)
                 bot.send_message(message.chat.id,'send message to chel or type (1) to go back')
         elif first_check == [(message.chat.id, 9,)] and message.text == str(3):
+            if len(profiles_dict[message.chat.id]) > 0:
+                profiles_dict[message.chat.id].pop()
             if len(profiles_dict[message.chat.id]) == 0:
                 bot.send_message(message.chat.id,'net anket(')
             else:
@@ -392,7 +402,6 @@ def send_text(message):# Название функции не играет ни�
                                        ', ' + str(db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
                                        + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
                                        db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-                profiles_dict[message.chat.id].pop()
         elif first_check ==[(message.chat.id,10,)]:
             if message.text != str(1):
                 db_worker.create_match_and_text(message.chat.id, (profiles_dict[message.chat.id][-1]), message.text)
