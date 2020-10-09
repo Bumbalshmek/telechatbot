@@ -1,14 +1,12 @@
 import telebot
-from telebot import types
 import config
 import random
-import time
 import sqlite3
 profiles_dict = dict()
+Ud_dict = dict()
 Ud = []
 Channel_Name = '@roflersss'
 class SQLighter:
-
     def __init__(self, database):
         self.connection = sqlite3.connect(database)
         self.cursor = self.connection.cursor()
@@ -56,6 +54,7 @@ class SQLighter:
         """Выдача данных из одной строки таблицы списком"""
         with self.connection:
             information = self.cursor.execute('SELECT * FROM ' + config.table_name +' WHERE user_id = "'+str(user_id)+ '"').fetchall()
+            information[0] = list(information[0])
             return information
     def state_update(self,user_id,new_state):
         with self.connection:
@@ -65,7 +64,6 @@ class SQLighter:
         with self.connection:
             preference = self.cursor.execute('SELECT lookingfor FROM '+ config.table_name+' WHERE user_id = "'+str(user_id)+'"').fetchall()
             return preference
-
     def add_to_row(self,text,user_id):
         """ Добавление контента в определенную строку таблицы """
         with self.connection:
@@ -81,7 +79,7 @@ class SQLighter:
         return sender
     def id_list(self,user_id):
         with self.connection:
-            ids = self.cursor.execute('SELECT user_id FROM '+config.table_name+' WHERE NOT user_id = "'+str(user_id)+'"').fetchall()
+            ids = self.cursor.execute('SELECT user_id FROM '+config.table_name+' WHERE NOT user_id = "'+str(user_id)+'" AND NOT state = 1').fetchall()
             return ids
     def create_match(self,user_id,matched_id):
         with self.connection:
@@ -92,6 +90,7 @@ class SQLighter:
     def close(self):
         """ Закрываем текущее соединение с БД """
         self.connection.close()
+#db_worker = SQLighter(config.database_name)
 bot = telebot.TeleBot(config.TOKEN)
 @bot.message_handler(commands=["test"])
 def chenit(message):
@@ -99,30 +98,15 @@ def chenit(message):
     var = db_worker.check_row(message.chat.id)
     varr = db_worker.check_state(message.chat.id)
     print(varr)
-    if var[0] == (1,) and varr == [(message.chat.id, 8)] or varr == [(message.chat.id, 9)] :
+    if var[0] == (1,) and varr == [(message.chat.id, 8)] or varr == [(message.chat.id, 9)] or varr ==[(message.chat.id, 10)]:
         bot.send_message(message.chat.id,'id exists, your profile saved')
-    elif var[0] == (1,) :
-        bot.send_message(message.chat.id,'id exists, but your profile is not completed enter name')
-        for k in range(len(Ud)):
-            if Ud[k - 1][0][0] == message.chat.id:
-                Ud.pop(k - 1)
-        Ud.append(db_worker.show_info(message.chat.id))
-        print(db_worker.show_info(message.chat.id))
-        for i in range(len(Ud)):
-            Ud[i-1][0] = list(Ud[i-1][0])
-        for i in range(len(Ud)):
-            if Ud[i-1][0][0] == message.chat.id:
-                Ud[i-1][0][8] = 1
     else :
         bot.send_message(message.chat.id,'id not exists and will be added enter your name')
         db_worker.new_row(message.chat.id)
-        Ud.append(db_worker.show_info(message.chat.id))
+        db_worker.state_update(message.chat.id,1)
+        Ud_dict.update({message.chat.id:db_worker.show_info(message.chat.id)})
         print(db_worker.show_info(message.chat.id))
-        for i in range(len(Ud)):
-            Ud[i-1][0] = list(Ud[i-1][0])
-        for i in range(len(Ud)):
-            if Ud[i-1][0][0] == message.chat.id:
-                Ud[i-1][0][8] = 1
+        print(Ud_dict)
 @bot.message_handler(commands=["start"])
 def start_message(message):
     bot.send_message(message.chat.id, 'Вы запустили бота(список всех моих команд находится на клавиатуре)', reply_markup=keyboard1)
@@ -131,170 +115,208 @@ def showid(message):
     bot.send_message(message.chat.id, message.chat.id)
 @bot.message_handler(content_types=["text"])
 def send_text(message):# Название функции не играет никакой роли, в принципe
-    if len(Ud) > 0:
-        for i in range(len(Ud)):
-            #name block
-            if Ud[i-1][0][8] == 1 and Ud[i-1][0][0] == message.chat.id:
-                Ud[i-1][0][1] = message.text
-                Ud[i-1][0][8] = 2
-                bot.send_message(message.chat.id, 'enter your sex male/female')
-            # gender block
-            elif Ud[i-1][0][8] == 2 and Ud[i-1][0][0] == message.chat.id:
-                if message.text.lower() == 'male':
-                    Ud[i - 1][0][2] = 1
-                    Ud[i - 1][0][8] = 3
-                    bot.send_message(message.chat.id, 'enter your age')
-                elif message.text.lower() == 'female':
-                    Ud[i - 1][0][2] = 0
-                    Ud[i - 1][0][8] = 3
-                    bot.send_message(message.chat.id, 'enter your age')
-                else :
-                    bot.send_message(message.chat.id,'please enter correct answer')
+    #name block
+    if message.chat.id in Ud_dict and Ud_dict[message.chat.id][0][8] == 1 :
+        Ud_dict[message.chat.id][0][1] = message.text
+        Ud_dict[message.chat.id][0][8] = 2
+        bot.send_message(message.chat.id, 'enter your sex male/female')
+    # gender block
+    elif message.chat.id in Ud_dict and  Ud_dict[message.chat.id][0][8] == 2 :
+         if message.text.lower() == 'male':
+            Ud_dict[message.chat.id][0][2] = 1
+            Ud_dict[message.chat.id][0][8] = 3
+            bot.send_message(message.chat.id, 'enter your age')
+         elif message.text.lower() == 'female':
+            Ud_dict[message.chat.id][0][2] = 0
+            Ud_dict[message.chat.id][0][8] = 3
+            bot.send_message(message.chat.id, 'enter your age')
+         else :
+            bot.send_message(message.chat.id,'please enter correct answer')
             #age block
-            elif Ud[i - 1][0][8] == 3 and Ud[i-1][0][0] == message.chat.id :
-                if int(message.text) > 10 and int(message.text) < 99:
-                    Ud[i - 1][0][3] = message.text
-                    Ud[i - 1][0][8] = 4
-                    bot.send_message(message.chat.id, 'Where you live')
-                else:
-                    bot.send_message(message.chat.id,'incorrent answer')
+    elif message.chat.id in Ud_dict and  Ud_dict[message.chat.id][0][8] == 3 :
+        if message.text.isdigit() and int(message.text) > 10 and int(message.text) < 99:
+            Ud_dict[message.chat.id][0][3] = message.text
+            Ud_dict[message.chat.id][0][8] = 4
+            bot.send_message(message.chat.id, 'Where do you live(city)')
+        else:
+            bot.send_message(message.chat.id,'incorrent answer')
             #city block
-            elif Ud[i - 1][0][8] == 4 and Ud[i-1][0][0] == message.chat.id:
-                if type(message.text) == str:
-                    Ud[i - 1][0][4] = message.text
-                    Ud[i - 1][0][8] = 5
-                    bot.send_message(message.chat.id,'Who Are You Looking For?(male/female/everyone)')
-                else:
-                    bot.send_message(message.chat.id,'incorrect answer')
-            #lookingfor block
-            elif Ud[i - 1][0][8] == 5 and Ud[i-1][0][0] == message.chat.id:
-                if message.text.lower() == 'male':
-                    Ud[i-1][0][5] = 1
-                    Ud[i-1][0][8] = 6
-                    bot.send_message(message.chat.id, 'now write a little about yourself')
-                elif message.text.lower() == 'female':
-                    Ud[i-1][0][5] = 2
-                    Ud[i-1][0][8] = 6
-                    bot.send_message(message.chat.id, 'now write a little about yourself')
-                elif message.text.lower() == 'everyone':
-                    Ud[i-1][0][5] = 3
-                    Ud[i-1][0][8] = 6
-                    bot.send_message(message.chat.id, 'now write a little about yourself')
-                else:
-                    bot.send_message(message.chat.id,'incorrect answer')
+    elif message.chat.id in Ud_dict and  Ud_dict[message.chat.id][0][8] == 4:
+        if type(message.text) == str:
+            Ud_dict[message.chat.id][0][4] = message.text
+            Ud_dict[message.chat.id][0][8] = 5
+            bot.send_message(message.chat.id,'Who Are You Looking For?(male/female/everyone)')
+        else:
+            bot.send_message(message.chat.id,'incorrect answer')
+    #lookingfor block
+    elif message.chat.id in Ud_dict and  Ud_dict[message.chat.id][0][8] == 5 :
+        if message.text.lower() == 'male':
+            Ud_dict[message.chat.id][0][5] = 1
+            Ud_dict[message.chat.id][0][8] = 6
+            bot.send_message(message.chat.id, 'now write a little about yourself')
+        elif message.text.lower() == 'female':
+            Ud_dict[message.chat.id][0][5] = 2
+            Ud_dict[message.chat.id][0][8] = 6
+            bot.send_message(message.chat.id, 'now write a little about yourself')
+        elif message.text.lower() == 'everyone':
+             Ud_dict[message.chat.id][0][5] = 3
+             Ud_dict[message.chat.id][0][8] = 6
+             bot.send_message(message.chat.id, 'now write a little about yourself')
+        else:
+            bot.send_message(message.chat.id,'incorrect answer')
             #self description block
-            elif Ud[i - 1][0][8] == 6 and Ud[i-1][0][0] == message.chat.id:
-                Ud[i - 1][0][6] = message.text
-                Ud[i - 1][0][8] = 7
-                bot.send_message(message.chat.id, 'send me your profile pic photo')
-                print(Ud)
+    elif message.chat.id in Ud_dict and  Ud_dict[message.chat.id][0][8] == 6 :
+         Ud_dict[message.chat.id][0][6] = message.text
+         Ud_dict[message.chat.id][0][8] = 7
+         bot.send_message(message.chat.id, 'send me your profile pic photo')
+         print(Ud_dict)
+    else:
+        db_worker = SQLighter(config.database_name)
+        first_check = db_worker.check_state(message.chat.id)
+        idii_list = db_worker.id_list(message.chat.id)
+        if first_check == [(message.chat.id, 8,)] and message.text == str(1) or (first_check == [(message.chat.id, 9,)] and message.text == str(4)) or (first_check == [(message.chat.id, 12,)] and message.text == str(1)):
+            # first_check passed (profile exists and fully filled)
+            if message.chat.id in profiles_dict and len(profiles_dict[message.chat.id]) > 0 :
+                bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+                                       caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
+                                               ', ' + str(
+                                           db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
+                                               + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
+                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
+                db_worker.state_update(message.chat.id, 10)
             else:
                 db_worker = SQLighter(config.database_name)
-                first_check = db_worker.check_state(message.chat.id)
-                idii_list = db_worker.id_list(message.chat.id)
-                if first_check == [(message.chat.id, 8,)] and message.text == str(1):
-                    # first_check passed (profile exists and fully filled)
-                    preferences_check = db_worker.preference_check(message.chat.id)
-                    if preferences_check == [(1,)]:
-                        bot.send_message(message.chat.id, 'you are looking for men')
-                        profiles_list = []
-                        for i in range(len(idii_list)):
-                            if db_worker.gender_check(idii_list[i - 1][0]) == [(1,)]:
-                                profiles_list.append(idii_list[i - 1][0])
-                                random.shuffle(profiles_list)
-                            if len(profiles_list) == 0:
-                                bot.send_message('net anket(')
-                            else:
-                                bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
+                preferences_check = db_worker.preference_check(message.chat.id)
+                if preferences_check == [(1,)]:
+                    profiles_list = []
+                    for i in range(len(idii_list)):
+                        if db_worker.gender_check(idii_list[i - 1][0]) == [(1,)]:
+                            profiles_list.append(idii_list[i - 1][0])
+                        random.shuffle(profiles_list)
+                    if len(profiles_list) == 0:
+                        bot.send_message(message.chat.id,'net anket(')
+                    else:
+                        bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
                                              caption=db_worker.show_info(profiles_list[-1])[0][1] +
                                                     ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                                     + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
                                                      db_worker.show_info(profiles_list[-1])[0][6])
-                                profiles_dict.update({message.chat.id : profiles_list})
-                                print(profiles_dict)
-                                db_worker.state_update(message.chat.id,9)
-                    elif preferences_check == [(2,)]:
-                        profiles_list = []
-                        for i in range(len(db_worker.id_list(message.chat.id))):
-                            if db_worker.gender_check(idii_list[i - 1][0]) == [(0,)]:
-                                profiles_list.append(idii_list[i - 1][0])
-                                random.shuffle(profiles_list)
-                        if len(profiles_list) == 0:
-                            bot.send_message('net anket(')
-                        else:
-                            bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
+                        profiles_dict.update({message.chat.id : profiles_list})
+                        print(profiles_dict)
+                        db_worker.state_update(message.chat.id,10)
+                elif preferences_check == [(2,)]:
+                    profiles_list = []
+                    for i in range(len(db_worker.id_list(message.chat.id))):
+                        if db_worker.gender_check(idii_list[i - 1][0]) == [(0,)]:
+                            profiles_list.append(idii_list[i - 1][0])
+                            random.shuffle(profiles_list)
+                    if len(profiles_list) == 0:
+                        bot.send_message(message.chat.id,'net anket(')
+                    else:
+                        bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
                                            caption=db_worker.show_info(profiles_list[-1])[0][1] +
                                                    ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                                    + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
                                                    db_worker.show_info(profiles_list[-1])[0][6])
-                            db_worker.state_update(message.chat.id, 9)
-                            profiles_dict.update({message.chat.id : profiles_list})
-                            print(profiles_dict)
+                        db_worker.state_update(message.chat.id, 10)
+                        profiles_dict.update({message.chat.id : profiles_list})
+                        print(profiles_dict)
+                else:
+                    profiles_list = []
+                    for i in range(len(db_worker.id_list(message.chat.id))):
+                        profiles_list.append(idii_list[i - 1][0])
+                    random.shuffle(profiles_list)
+                    if len(profiles_list) == 0:
+                        bot.send_message(message.chat.id,'net anket(')
                     else:
-                        profiles_list = []
-                        for i in range(len(db_worker.id_list(message.chat.id))):
-                            profiles_list.append(idii_list[i - 1][0])
-                            random.shuffle(profiles_list)
-                        if len(profiles_list) == 0:
-                            bot.send_message('net anket(')
-                        else:
-                            bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
+                        bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
                                         caption=db_worker.show_info(profiles_list[-1])[0][1] +
                                                     ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                                     + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
                                                     db_worker.show_info(profiles_list[-1])[0][6])
-                            profiles_dict.update({message.chat.id : profiles_list})
-                            print(profiles_dict)
-                            db_worker.state_update(message.chat.id, 9)
-                elif first_check == [(message.chat.id, 9,)] and message.text == str(1):
-                    if len(profiles_dict[message.chat.id]) > 0 :
-                        db_worker.create_match(message.chat.id, profiles_dict[message.chat.id][-1])
-                        profiles_dict[message.chat.id].pop()
-                    if len(profiles_dict[message.chat.id]) == 0:
-                        bot.send_message(message.chat.id, 'net anket(')
-                    else:
-                        bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
-                                       caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
-                                               ', ' + str(
-                                           db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
-                                               + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-                elif first_check == [(message.chat.id, 9,)] and message.text == str(2):
-                    if len(profiles_dict[message.chat.id]) == 0:
-                        bot.send_message(message.chat.id, 'net anket(')
-                    else:
+                        profiles_dict.update({message.chat.id : profiles_list})
+                        print(profiles_dict)
                         db_worker.state_update(message.chat.id, 10)
-                        bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+        elif first_check == [(message.chat.id, 8)] and message.text == str(2):
+            bot.send_message(message.chat.id, '1(perezapolnit),2(smena opisaniya),3(smena foto) 4(anketi)')
+            db_worker.state_update(message.chat.id, 9)
+            print(Ud_dict)
+        elif first_check == [(message.chat.id, 9)] and message.text == str(1):
+            bot.send_message(message.chat.id, 'enter your name')
+            db_worker.state_update(message.chat.id, 1)
+            Ud_dict.update({message.chat.id:db_worker.show_info(message.chat.id)})
+            print(Ud_dict)
+        elif first_check == [(message.chat.id, 9)] and message.text == str(2):
+            bot.send_message(message.chat.id,'write a little about yourself or 1 to go back')
+            db_worker.state_update(message.chat.id, 14)
+        elif first_check == [(message.chat.id, 9)] and message.text == str(3):
+            bot.send_message(message.chat.id,'send new profile pic')
+            db_worker.state_update(message.chat.id,7)
+            Ud_dict.update({message.chat.id:db_worker.show_info(message.chat.id)})
+        elif first_check == [(message.chat.id, 14)] and message.text != str(1):
+            Ud_dict.update({message.chat.id:db_worker.show_info(message.chat.id)})
+            Ud_dict[message.chat.id][0][6] = message.text
+            db_worker.send_info(Ud_dict[message.chat.id][0])
+            db_worker.state_update(message.chat.id, 9)
+            bot.send_message(message.chat.id,'Your profile:',disable_notification = True)
+            bot.send_photo(message.chat.id, Ud_dict[message.chat.id][0][7],
+                               caption=str(Ud_dict[message.chat.id][0][1]) + ', ' + str(Ud_dict[message.chat.id][0][3]) + ', ' +
+                                       str(Ud_dict[message.chat.id][0][4]) + '\n' + str(Ud_dict[message.chat.id][0][6]))
+            bot.send_message(message.chat.id, '1(perezapolnit),2(smena opisaniya),3(smena foto), 4(anketi)')
+        elif first_check == [(message.chat.id, 14)] and message.text == str(1):
+            bot.send_message(message.chat.id,'Your profile:',disable_notification = True)
+            bot.send_photo(message.chat.id, Ud_dict[message.chat.id][0][7],
+                               caption=str(Ud_dict[message.chat.id][0][1]) + ', ' + str(Ud_dict[message.chat.id][0][3]) + ', ' +
+                                       str(Ud_dict[message.chat.id][0][4]) + '\n' + str(Ud_dict[message.chat.id][0][6]))
+            bot.send_message(message.chat.id, '1(perezapolnit),2(smena opisaniya),3(smena foto), 4(anketi)')
+            db_worker.state_update(message.chat.id,9)
+        elif first_check == [(message.chat.id, 10,)] and message.text == str(1):
+            if len(profiles_dict[message.chat.id]) > 0 :
+                db_worker.create_match(message.chat.id, profiles_dict[message.chat.id][-1])
+                profiles_dict[message.chat.id].pop()
+            if len(profiles_dict[message.chat.id]) == 0:
+                bot.send_message(message.chat.id, 'net anket(')
+            else:
+                bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
                                            db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-                        db_worker.state_update(message.chat.id, 10)
-                elif first_check == [(message.chat.id, 9,)] and message.text == str(3):
-                    if len(profiles_dict[message.chat.id]) > 0 :
-                        profiles_dict[message.chat.id].pop()
-                    if len(profiles_dict[message.chat.id]) == 0:
-                        bot.send_message(message.chat.id, 'net anket(')
-                    else:
-                        bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
+        elif first_check == [(message.chat.id, 10,)] and message.text == str(2):
+            if len(profiles_dict[message.chat.id]) == 0:
+                bot.send_message(message.chat.id, 'net anket(')
+            else:
+                db_worker.state_update(message.chat.id, 11)
+                bot.send_message(message.chat.id, 'send message to chel or type (1) to go back')
+                db_worker.state_update(message.chat.id, 11)
+        elif first_check == [(message.chat.id, 10,)] and message.text == str(3):
+            if len(profiles_dict[message.chat.id]) > 0 :
+                profiles_dict[message.chat.id].pop()
+            if len(profiles_dict[message.chat.id]) == 0:
+                bot.send_message(message.chat.id, 'net anket(')
+            else:
+                bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
                                            db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-                        profiles_dict[message.chat.id].pop()
-                elif first_check == [(message.chat.id, 10,)]:
-                    if message.text != str(1):
-                        db_worker.create_match_and_text(message.chat.id, profiles_dict[message.chat.id][-1],
+                profiles_dict[message.chat.id].pop()
+        elif first_check == [(message.chat.id, 10,)] and message.text == str(4):
+            bot.send_message(message.chat.id,'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
+            db_worker.state_update(message.chat.id,12)
+        elif first_check == [(message.chat.id, 11,)]:
+            if message.text != str(1):
+                db_worker.create_match_and_text(message.chat.id, profiles_dict[message.chat.id][-1],
                                                             message.text)
-                        if len(profiles_dict[message.chat.id]) > 0:
-                            profiles_dict[message.chat.id].pop()
-                        if len(profiles_dict[message.chat.id]) == 0:
-                            db_worker.state_update(message.chat.id, 9)
-                            bot.send_message(message.chat.id, 'net anket(')
-                        else:
-                            bot.send_photo(message.chat.id,
+                if len(profiles_dict[message.chat.id]) > 0:
+                    profiles_dict[message.chat.id].pop()
+                if len(profiles_dict[message.chat.id]) == 0:
+                    db_worker.state_update(message.chat.id, 10)
+                    bot.send_message(message.chat.id, 'net anket(')
+                else:
+                    bot.send_photo(message.chat.id,
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
                                                caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
                                                        ', ' + str(
@@ -302,10 +324,10 @@ def send_text(message):# Название функции не играет ни�
                                                        + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][
                                                            4] + '\n' +
                                                        db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-                            db_worker.state_update(message.chat.id, 9)
-                    else:
-                        db_worker.state_update(message.chat.id, 9)
-                        bot.send_photo(message.chat.id,
+                    db_worker.state_update(message.chat.id, 10)
+            else:
+                db_worker.state_update(message.chat.id, 10)
+                bot.send_photo(message.chat.id,
                                        db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
@@ -313,135 +335,30 @@ def send_text(message):# Название функции не играет ни�
                                                + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][
                                                    4] + '\n' +
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-                else:
-                    bot.send_message(message.chat.id,'incorrect answer')
-    else:
-        db_worker = SQLighter(config.database_name)
-        first_check = db_worker.check_state(message.chat.id)
-        idii_list = db_worker.id_list(message.chat.id)
-        if first_check == [(message.chat.id,8,)] and message.text == str(1):
-            #first_check passed (profile exists and fully filled)
-            preferences_check = db_worker.preference_check(message.chat.id)
-            if preferences_check == [(1,)]:
-                profiles_list = []
-                for i in range (len(idii_list)):
-                    if db_worker.gender_check(idii_list[i-1][0]) == [(1,)]:
-                        profiles_list.append(idii_list[i-1][0])
-                        random.shuffle(profiles_list)
-                if len(profiles_list) == 0:
-                    bot.send_message(message.chat.id,'net anket(')
-                else:
-                    bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
-                                   caption=db_worker.show_info(profiles_list[-1])[0][1] +
-                                           ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
-                                           + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
-                                           db_worker.show_info(profiles_list[-1])[0][6])
-                    profiles_dict.update({message.chat.id : profiles_list})
-                    print(profiles_dict)
-                    db_worker.state_update(message.chat.id, 9)
-            elif preferences_check == [(2,)]:
-                profiles_list = []
-                for i in range (len(db_worker.id_list(message.chat.id))):
-                    if db_worker.gender_check(idii_list[i-1][0]) == [(0,)]:
-                        profiles_list.append(idii_list[i-1][0])
-                        random.shuffle(profiles_list)
-                if len(profiles_list) == 0:
-                    bot.send_message(message.chat.id,'net anket(')
-                else:
-                    bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
-                                   caption=db_worker.show_info(profiles_list[-1])[0][1] +
-                                           ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
-                                           + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
-                                           db_worker.show_info(profiles_list[-1])[0][6])
-                    profiles_dict.update({message.chat.id : profiles_list})
-                    print(profiles_dict)
-                    db_worker.state_update(message.chat.id, 9)
-            else:
-                profiles_list = []
-                for i in range(len(db_worker.id_list(message.chat.id))):
-                    profiles_list.append(idii_list[i - 1][0])
-                    random.shuffle(profiles_list)
-                bot.send_message(message.chat.id,'thats more like it')
-                if len(profiles_list) == 0:
-                    bot.send_message(message.chat.id,'net anket(')
-                else:
-                    bot.send_photo(message.chat.id, db_worker.show_info(profiles_list[-1])[0][7],
-                                caption=db_worker.show_info(profiles_list[-1])[0][1] +
-                                            ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
-                                         + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
-                                         db_worker.show_info(profiles_list[-1])[0][6])
-                    profiles_dict.update({message.chat.id : profiles_list})
-                    print(profiles_dict)
-                    db_worker.state_update(message.chat.id, 9)
-        elif first_check == [(message.chat.id, 9,)] and message.text == str(1):
-            if len(profiles_dict[message.chat.id]) > 0:
-                db_worker.create_match(message.chat.id, profiles_dict[message.chat.id][-1])
-                profiles_dict[message.chat.id].pop()
-            if len(profiles_dict[message.chat.id]) == 0:
-                bot.send_message(message.chat.id,'net anket(')
-            else:
-                bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
-                               caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
-                                       ', ' + str(db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
-                                       + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
-                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-        elif first_check == [(message.chat.id, 9,)] and message.text == str(2):
-            if len(profiles_dict[message.chat.id]) == 0:
-                bot.send_message(message.chat.id,'net anket(')
-            else:
-                db_worker.state_update(message.chat.id, 10)
-                bot.send_message(message.chat.id,'send message to chel or type (1) to go back')
-        elif first_check == [(message.chat.id, 9,)] and message.text == str(3):
-            if len(profiles_dict[message.chat.id]) > 0:
-                profiles_dict[message.chat.id].pop()
-            if len(profiles_dict[message.chat.id]) == 0:
-                bot.send_message(message.chat.id,'net anket(')
-            else:
-                bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
-                               caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
-                                       ', ' + str(db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
-                                       + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
-                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-        elif first_check ==[(message.chat.id,10,)]:
-            if message.text != str(1):
-                db_worker.create_match_and_text(message.chat.id, (profiles_dict[message.chat.id][-1]), message.text)
-                if len(profiles_dict[message.chat.id]) > 0:
-                    profiles_dict[message.chat.id].pop()
-                if len(profiles_dict[message.chat.id]) == 0:
-                    bot.send_message(message.chat.id, 'net anket(')
-                else:
-                    bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
-                                   caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
-                                           ', ' + str(
-                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
-                                           + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
-                                           db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-                db_worker.state_update(message.chat.id,9)
-            else:
-                db_worker.state_update(message.chat.id,9)
-                bot.send_photo(message.chat.id, db_worker.show_info(profiles_dict[message.chat.id][-1])[0][7],
-                               caption=db_worker.show_info(profiles_dict[message.chat.id][-1])[0][1] +
-                                       ', ' + str(
-                                   db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
-                                       + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
-                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-        else:
-            bot.send_message(message.chat.id, 'incorrect answer')
-@bot.message_handler(content_types="photo")
-def profilepic(message):
-    for i in range (len(Ud)):
-        if Ud[i-1][0][8] == 7 and Ud[i-1][0][0] == message.chat.id:
-            Ud[i-1][0][7] = message.photo[0].file_id
-            Ud[i-1][0][8] = 8
-            db_worker = SQLighter(config.database_name)
-            db_worker.send_info(Ud[i - 1][0])
-            bot.send_message(message.chat.id,'Your profile:',disable_notification = True)
-            bot.send_photo(message.chat.id, Ud[i-1][0][7], caption= Ud[i-1][0][1]+', '+Ud[i-1][0][3]+', '+Ud[i-1][0][4]+'\n'+Ud[i-1][0][6])
-            for k in range (len(Ud)):
-                if Ud[k-1][0][0] == message.chat.id:
-                    Ud.pop(k-1)
+        elif first_check == [(message.chat.id, 12,)] and message.text == str(2):
+            bot.send_message(message.chat.id, '1(perezapolnit),2(smena opisaniya),3(smena foto) 4(anketi)')
+            db_worker.state_update(message.chat.id, 9)
+        elif first_check == [(message.chat.id, 12,)] and message.text == str(3):
+            bot.send_message(message.chat.id,'bbak')
+            db_worker.state_update(message.chat.id, 15)
         else:
             bot.send_message(message.chat.id,'incorrect answer')
+
+@bot.message_handler(content_types="photo")
+def profilepic(message):
+        db_worker = SQLighter(config.database_name)
+        if message.chat.id in Ud_dict and  Ud_dict[message.chat.id][0][8] == 7 :
+            Ud_dict[message.chat.id][0][7] = message.photo[0].file_id
+            Ud_dict[message.chat.id][0][8] = 8
+            db_worker.send_info(Ud_dict[message.chat.id][0])
+            bot.send_message(message.chat.id,'Your profile:',disable_notification = True)
+            bot.send_photo(message.chat.id, Ud_dict[message.chat.id][0][7],
+                               caption=str(Ud_dict[message.chat.id][0][1]) + ', ' + str(Ud_dict[message.chat.id][0][3]) + ', ' +
+                                       str(Ud_dict[message.chat.id][0][4]) + '\n' + str(Ud_dict[message.chat.id][0][6]))
+            bot.send_message(message.chat.id,'now choose an option 1(anketi),2(perezapolnenie)')
+        else:
+            bot.send_message(message.chat.id,'incorrect answer')
+
 
             bot.send_message(Channel_Name, 'New rofl')
 keyboard1 = telebot.types.ReplyKeyboardMarkup()
