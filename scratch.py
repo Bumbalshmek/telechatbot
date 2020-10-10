@@ -79,7 +79,11 @@ class SQLighter:
         return sender
     def id_list(self,user_id):
         with self.connection:
-            ids = self.cursor.execute('SELECT user_id FROM '+config.table_name+' WHERE NOT user_id = "'+str(user_id)+'" AND NOT state = 1').fetchall()
+            ids = self.cursor.execute('SELECT user_id FROM '+config.table_name+' WHERE NOT user_id = "'+str(user_id)+'" AND NOT state = 1 AND NOT state = 15').fetchall()
+            return ids
+    def id_list_full(self):
+        with self.connection:
+            ids = self.cursor.execute('SELECT user_id FROM '+config.table_name+'').fetchall()
             return ids
     def create_match(self,user_id,matched_id):
         with self.connection:
@@ -90,26 +94,30 @@ class SQLighter:
     def close(self):
         """ Закрываем текущее соединение с БД """
         self.connection.close()
-#db_worker = SQLighter(config.database_name)
+db_worker = SQLighter(config.database_name)
+for i in range(db_worker.count_rows()):
+    Ud_dict.update({db_worker.id_list_full()[i][0]:db_worker.show_info(db_worker.id_list_full()[i][0])})
+print(Ud_dict)
 bot = telebot.TeleBot(config.TOKEN)
-@bot.message_handler(commands=["test"])
+@bot.message_handler(commands=["start"])
 def chenit(message):
     db_worker = SQLighter(config.database_name)
     var = db_worker.check_row(message.chat.id)
     varr = db_worker.check_state(message.chat.id)
     print(varr)
-    if var[0] == (1,) and varr == [(message.chat.id, 8)] or varr == [(message.chat.id, 9)] or varr ==[(message.chat.id, 10)]:
-        bot.send_message(message.chat.id,'id exists, your profile saved')
+    if message.chat.id in Ud_dict:
+        bot.send_message(message.chat.id,'incorrect answer')
     else :
-        bot.send_message(message.chat.id,'id not exists and will be added enter your name')
-        db_worker.new_row(message.chat.id)
-        db_worker.state_update(message.chat.id,1)
-        Ud_dict.update({message.chat.id:db_worker.show_info(message.chat.id)})
-        print(db_worker.show_info(message.chat.id))
-        print(Ud_dict)
-@bot.message_handler(commands=["start"])
-def start_message(message):
-    bot.send_message(message.chat.id, 'Вы запустили бота(список всех моих команд находится на клавиатуре)', reply_markup=keyboard1)
+        if var[0] == (1,) and varr == [(message.chat.id, 8)] or varr == [(message.chat.id, 9)] or varr == [
+            (message.chat.id, 10)]:
+            bot.send_message(message.chat.id, 'id exists, your profile saved')
+        else:
+            bot.send_message(message.chat.id, 'id not exists and will be added enter your name')
+            db_worker.new_row(message.chat.id)
+            db_worker.state_update(message.chat.id, 1)
+            Ud_dict.update({message.chat.id: db_worker.show_info(message.chat.id)})
+            print(db_worker.show_info(message.chat.id))
+            print(Ud_dict)
 @bot.message_handler(commands=["showmyid"])
 def showid(message):
     bot.send_message(message.chat.id, message.chat.id)
@@ -341,6 +349,13 @@ def send_text(message):# Название функции не играет ни�
         elif first_check == [(message.chat.id, 12,)] and message.text == str(3):
             bot.send_message(message.chat.id,'bbak')
             db_worker.state_update(message.chat.id, 15)
+        elif first_check ==[(message.chat.id,15,)] :
+            if message.text != str(1):
+                bot.send_message(message.chat.id,'please type 1 to continue')
+            else:
+                bot.send_message(message.chat.id,'welcome back again!')
+                db_worker.state_update(message.chat.id, 12)
+                bot.send_message(message.chat.id, 'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
         else:
             bot.send_message(message.chat.id,'incorrect answer')
 
