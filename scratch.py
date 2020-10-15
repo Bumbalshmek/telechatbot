@@ -76,7 +76,7 @@ class SQLighter:
         with self.connection:
             sender = self.cursor.execute('UPDATE ' + config.table_name + ' SET uuser_name = "'+str(user_data_list[1])+'", sex = '+str(user_data_list[2])+',' 
             'age = '+str(user_data_list[3])+', city = "'+user_data_list[4]+'", lookingfor = '+str(user_data_list[5])+ ', opisaniye = "'+user_data_list[6]+'"'
-            ', image = "'+str(user_data_list[7])+'", state = '+str(user_data_list[8])+' WHERE user_id  = "'+ str(user_data_list[0]) +'"')
+            ', image = "'+str(user_data_list[7])+'", state = '+str(user_data_list[8])+', username = "'+str(user_data_list[9])+ '" WHERE user_id  = "'+ str(user_data_list[0]) +'"')
         return sender
     def id_list(self,user_id):
         with self.connection:
@@ -88,10 +88,19 @@ class SQLighter:
             return ids
     def create_match(self,user_id,matched_id):
         with self.connection:
-            self.cursor.execute('INSERT INTO matches ("user_id","match_user_id") VALUES ('+str(user_id)+','+str(matched_id)+')')
+            if self.cursor.execute('SELECT COUNT(*)>0 FROM matches WHERE user_id = "' + str(user_id) + '" AND match_user_id = "' +str(matched_id)+ '"').fetchall()[0] == (0,):
+                self.cursor.execute('INSERT INTO matches ("user_id","match_user_id") VALUES (' + str(user_id) + ',' + str(
+                matched_id) +')')
+            else:
+                pass
     def create_match_and_text(self,user_id,matched_id,text):
         with self.connection:
-            self.cursor.execute('INSERT INTO matches ("user_id","match_user_id","reaction") VALUES ('+str(user_id)+','+str(matched_id)+',"'+str(text)+'")')
+            if self.cursor.execute(
+                    'SELECT COUNT(*)>0 FROM matches WHERE user_id = "' + str(user_id) + '" AND match_user_id = "' + str(
+                            matched_id) + '"').fetchall()[0] == (0,):
+                self.cursor.execute('INSERT INTO matches ("user_id","match_user_id","reaction") VALUES ('+str(user_id)+','+str(matched_id)+',"'+str(text)+'")')
+            else:
+                pass
     def close(self):
         """ Закрываем текущее соединение с БД """
         self.connection.close()
@@ -124,7 +133,7 @@ def chenit(message):
             print(Ud_dict)
 @bot.message_handler(commands=["showmyid"])
 def showid(message):
-    bot.send_message(message.chat.id, message.chat.id)
+    bot.send_message(message.chat.id, message.from_user.username)
 @bot.message_handler(content_types=["text"])
 def send_text(message):# Название функции не играет никакой роли, в принципe
     #name block
@@ -417,15 +426,15 @@ def send_text(message):# Название функции не играет ни�
 
         elif first_check == [(message.chat.id, 17,)] and message.text == str(1):
             if len(matches_dict[message.chat.id]) > 0:
-                bot.send_message(message.chat.id, 'molodec')
-                bot.send_message(matches_dict[message.chat.id][-1],'ti toje')
+                bot.send_message(message.chat.id, 'molodec @'+db_worker.show_info(matches_dict[message.chat.id][-1])[0][9]+'')
+                bot.send_message(matches_dict[message.chat.id][-1],'ti toje @'+db_worker.show_info(message.chat.id)[0][9]+'')
                 matches_dict[message.chat.id].pop()
             if len(matches_dict[message.chat.id]) == 0:
                 db_worker.state_update(message.chat.id, 12)
                 bot.send_message(message.chat.id, 'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
             else:
                 if matches_dict[message.chat.id] > 1:
-                    bot.send_message(message.chat.id, 'someone interested in you '+str(len(matches_dict[message.chat.id]))+'more')
+                    bot.send_message(message.chat.id, 'someone interested in you '+str(len(matches_dict[message.chat.id])-1)+'more')
                 bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                        ', ' + str(
@@ -458,6 +467,7 @@ def profilepic(message):
         if message.chat.id in Ud_dict and  Ud_dict[message.chat.id][0][8] == 7 :
             Ud_dict[message.chat.id][0][7] = message.photo[0].file_id
             Ud_dict[message.chat.id][0][8] = 8
+            Ud_dict[message.chat.id][0][9] = message.from_user.username
             db_worker.send_info(Ud_dict[message.chat.id][0])
             bot.send_message(message.chat.id,'Your profile:',disable_notification = True)
             bot.send_photo(message.chat.id, Ud_dict[message.chat.id][0][7],
