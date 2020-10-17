@@ -101,6 +101,16 @@ class SQLighter:
                 self.cursor.execute('INSERT INTO matches ("user_id","match_user_id","reaction") VALUES ('+str(user_id)+','+str(matched_id)+',"'+str(text)+'")')
             else:
                 pass
+    def check_text(self,user_id,matched_id):
+        with self.connection:
+            if len(self.cursor.execute('SELECT reaction FROM matches WHERE user_id = '+str(user_id)+' AND match_user_id = '+str(matched_id)+'').fetchall()[0][0]) == 0:
+                k = 0
+            else:
+                k = (self.cursor.execute('SELECT reaction FROM matches WHERE user_id = '+str(user_id)+' AND match_user_id = '+str(matched_id)+'').fetchall()[0][0])
+        return k
+    def deletematch(self,user_id,matched_id):
+        with self.connection:
+            self.cursor.execute('DELETE FROM matches WHERE user_id = "'+str(user_id) +'" AND match_user_id = "'+str(matched_id)+'"')
     def close(self):
         """ Закрываем текущее соединение с БД """
         self.connection.close()
@@ -279,7 +289,11 @@ def send_text(message):# Название функции не играет ни�
             Ud_dict[message.chat.id][0][6] = message.text
             db_worker.send_info(Ud_dict[message.chat.id][0])
             if len(matches_dict[message.chat.id]) > 0:
-                bot.send_message(message.chat.id, 'ti emu ponravilsya')
+                if len(matches_dict[message.chat.id]) > 1:
+                    bot.send_message(message.chat.id, 'someone interested in you ' + str(
+                        len(matches_dict[message.chat.id]) - 1) + ' more')
+                else:
+                    bot.send_message(message.chat.id, 'someone interested in you ')
                 bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                        ', ' + str(
@@ -296,7 +310,11 @@ def send_text(message):# Название функции не играет ни�
                 bot.send_message(message.chat.id, '1(perezapolnit),2(smena opisaniya),3(smena foto), 4(anketi)')
         elif first_check == [(message.chat.id, 14)] and message.text == str(1):
             if len(matches_dict[message.chat.id]) > 0:
-                bot.send_message(message.chat.id, 'ti emu ponravilsya')
+                if len(matches_dict[message.chat.id]) > 1:
+                    bot.send_message(message.chat.id, 'someone interested in you ' + str(
+                        len(matches_dict[message.chat.id]) - 1) + ' more')
+                else:
+                    bot.send_message(message.chat.id, 'someone interested in you ')
                 bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                        ', ' + str(
@@ -326,12 +344,20 @@ def send_text(message):# Название функции не играет ни�
                     bot.send_message(profiles_dict[message.chat.id][-1], 'someone interested in you, zakanchivay s voprosom vishe chtobi see')
                 profiles_dict[message.chat.id].pop()
             if len(matches_dict[message.chat.id]) > 0 :
-                bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
+                if db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id) == 0 :
+                    bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
                                                db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                else:
+                    bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
+                                       caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
+                                               ', ' + str(
+                                           db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
+                                               + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id) +'')
                 db_worker.state_update(message.chat.id,17)
             else:
                 if len(profiles_dict[message.chat.id]) == 0:
@@ -354,7 +380,11 @@ def send_text(message):# Название функции не играет ни�
             if len(profiles_dict[message.chat.id]) > 0 :
                 profiles_dict[message.chat.id].pop()
             if len(matches_dict[message.chat.id]) > 0 :
-                bot.send_message(message.chat.id, 'ti emu ponravilsya')
+                if len(matches_dict[message.chat.id]) > 1:
+                    bot.send_message(message.chat.id, 'someone interested in you ' + str(
+                        len(matches_dict[message.chat.id]) - 1) + ' more')
+                else:
+                    bot.send_message(message.chat.id, 'someone interested in you ')
                 bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
@@ -374,7 +404,11 @@ def send_text(message):# Название функции не играет ни�
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
         elif first_check == [(message.chat.id, 10,)] and message.text == str(4):
             if len(matches_dict[message.chat.id]) > 0 :
-                bot.send_message(message.chat.id, 'ti emu ponravilsya')
+                if len(matches_dict[message.chat.id]) > 1:
+                    bot.send_message(message.chat.id, 'someone interested in you ' + str(
+                        len(matches_dict[message.chat.id]) - 1) + ' more')
+                else:
+                    bot.send_message(message.chat.id, 'someone interested in you ')
                 bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
@@ -404,7 +438,11 @@ def send_text(message):# Название функции не играет ни�
                 if len(profiles_dict[message.chat.id]) > 0:
                     profiles_dict[message.chat.id].pop()
                 if len(matches_dict[message.chat.id]) > 0:
-                    bot.send_message(message.chat.id, 'ti emu ponravilsya')
+                    if len(matches_dict[message.chat.id]) > 1:
+                        bot.send_message(message.chat.id, 'someone interested in you ' + str(
+                            len(matches_dict[message.chat.id]) - 1) + ' more')
+                    else:
+                        bot.send_message(message.chat.id, 'someone interested in you ')
                     bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                    caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                            ', ' + str(
@@ -428,7 +466,11 @@ def send_text(message):# Название функции не играет ни�
                         db_worker.state_update(message.chat.id, 10)
             else:
                 if len(matches_dict[message.chat.id]) > 0:
-                    bot.send_message(message.chat.id, 'ti emu ponravilsya')
+                    if len(matches_dict[message.chat.id]) > 1:
+                        bot.send_message(message.chat.id, 'someone interested in you ' + str(
+                            len(matches_dict[message.chat.id]) - 1) + ' more')
+                    else:
+                        bot.send_message(message.chat.id, 'someone interested in you ')
                     bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                    caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                            ', ' + str(
@@ -460,7 +502,11 @@ def send_text(message):# Название функции не играет ни�
                 db_worker.state_update(message.chat.id, 12)
                 bot.send_message(message.chat.id, 'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
         elif first_check == [(message.chat.id,16)]  and message.text == str(1):
-            bot.send_message(message.chat.id, 'ti emu ponravilsya')
+            if len(matches_dict[message.chat.id]) > 1:
+                bot.send_message(message.chat.id,
+                                 'someone interested in you ' + str(len(matches_dict[message.chat.id]) - 1) + ' more')
+            else:
+                bot.send_message(message.chat.id, 'someone interested in you ')
             bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                            caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                    ', ' + str(
@@ -469,7 +515,7 @@ def send_text(message):# Название функции не играет ни�
                                    db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
             db_worker.state_update(message.chat.id, 17)
         elif first_check == [(message.chat.id,16)] and message.text == str(2):
-            bot.send_message(message.chat.id, '1(show'+str(len(matches_dict[message.chat.id]))+'people that interested in me), 2(i dont want to search people anymore)')
+            bot.send_message(message.chat.id, '1(show '+str(len(matches_dict[message.chat.id]))+' people that interested in me), 2(i dont want to search people anymore)')
             db_worker.state_update(message.chat.id, 18)
         elif first_check == [(message.chat.id, 17,)] and message.text == str(1):
             if len(matches_dict[message.chat.id]) > 0:
@@ -480,14 +526,16 @@ def send_text(message):# Название функции не играет ни�
                                    db_worker.show_info(message.chat.id)[0][3]) + ', ' +
                                    db_worker.show_info(message.chat.id)[0][4] + '\n' +
                                    db_worker.show_info(message.chat.id)[0][6])
+                db_worker.deletematch(matches_dict[message.chat.id][-1], message.chat.id)
                 matches_dict[message.chat.id].pop()
             if len(matches_dict[message.chat.id]) == 0:
                 db_worker.state_update(message.chat.id, 12)
                 bot.send_message(message.chat.id, 'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
             else:
                 if len(matches_dict[message.chat.id]) > 1:
-                    bot.send_message(message.chat.id, 'someone interested in you '+str(len(matches_dict[message.chat.id])-1)+'more')
-                bot.send_message(message.chat.id, 'ti emu ponravilsya')
+                    bot.send_message(message.chat.id, 'someone interested in you '+str(len(matches_dict[message.chat.id])-1)+' more')
+                else:
+                    bot.send_message(message.chat.id, 'someone interested in you ')
                 bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                        ', ' + str(
@@ -496,14 +544,16 @@ def send_text(message):# Название функции не играет ни�
                                        db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
         elif first_check == [(message.chat.id, 17,)] and message.text == str(2):
             if len(matches_dict[message.chat.id]) > 0:
+                db_worker.deletematch(matches_dict[message.chat.id][-1],message.chat.id)
                 matches_dict[message.chat.id].pop()
             if len(matches_dict[message.chat.id]) == 0:
                 db_worker.state_update(message.chat.id, 12)
                 bot.send_message(message.chat.id, 'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
             else:
                 if len(matches_dict[message.chat.id]) > 1:
-                    bot.send_message(message.chat.id, 'someone interested in you '+str(len(matches_dict[message.chat.id]))+'more')
-                bot.send_message(message.chat.id, 'ti emu ponravilsya')
+                    bot.send_message(message.chat.id, 'someone interested in you '+str(len(matches_dict[message.chat.id])-1)+' more')
+                else:
+                    bot.send_message(message.chat.id, 'someone interested in you ')
                 bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                        ', ' + str(
@@ -515,7 +565,11 @@ def send_text(message):# Название функции не играет ни�
             bot.send_message(message.chat.id, '1(show'+str(len(matches_dict[message.chat.id]))+'people that interested in me), 2(i dont want to search people anymore)')
             db_worker.state_update(message.chat.id, 18)
         elif first_check == [(message.chat.id, 18,)] and message.text == str(1):
-            bot.send_message(message.chat.id, 'ti emu ponravilsya')
+            if len(matches_dict[message.chat.id]) > 1:
+                bot.send_message(message.chat.id,
+                                 'someone interested in you ' + str(len(matches_dict[message.chat.id]) - 1) + ' more')
+            else:
+                bot.send_message(message.chat.id, 'someone interested in you ')
             bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                            caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                    ', ' + str(
