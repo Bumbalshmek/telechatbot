@@ -546,6 +546,12 @@ def send_text(message):# Название функции не играет ни�
                                                    4] + '\n' +
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6],reply_markup=keyboard2)
         elif first_check == [(message.chat.id, 12,)] and message.text == str(2):
+            bot.send_photo(message.chat.id, db_worker.show_info(message.chat.id)[0][7],
+                           caption=db_worker.show_info(message.chat.id)[0][1] +
+                                   ', ' + str(
+                               db_worker.show_info(message.chat.id)[0][3]) + ', '
+                                   + db_worker.show_info(message.chat.id)[0][4] + '\n' +
+                                   db_worker.show_info(message.chat.id)[0][6], )
             bot.send_message(message.chat.id, '1(perezapolnit) \n 2(smena opisaniya) \n 3(smena foto) \n 4(anketi)',reply_markup=keyboard5)
             db_worker.state_update(message.chat.id, 9)
         elif first_check == [(message.chat.id, 12,)] and message.text == str(3):
