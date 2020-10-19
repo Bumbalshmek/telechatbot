@@ -150,7 +150,7 @@ def send_text(message):# Название функции не играет ни�
     if message.chat.id in Ud_dict and Ud_dict[message.chat.id][0][8] == 1 :
         Ud_dict[message.chat.id][0][1] = message.text
         Ud_dict[message.chat.id][0][8] = 2
-        bot.send_message(message.chat.id, 'enter your sex male/female')
+        bot.send_message(message.chat.id, 'enter your sex male/female',reply_markup=keyboard7)
     # gender block
     elif message.chat.id in Ud_dict and  Ud_dict[message.chat.id][0][8] == 2 :
          if message.text.lower() == 'male':
@@ -176,7 +176,7 @@ def send_text(message):# Название функции не играет ни�
         if type(message.text) == str:
             Ud_dict[message.chat.id][0][4] = message.text
             Ud_dict[message.chat.id][0][8] = 5
-            bot.send_message(message.chat.id,'Who Are You Looking For?(male/female/everyone)')
+            bot.send_message(message.chat.id,'Who Are You Looking For?(male/female/everyone)',reply_markup=keyboard8)
         else:
             bot.send_message(message.chat.id,'incorrect answer')
     #lookingfor block
@@ -213,7 +213,7 @@ def send_text(message):# Название функции не играет ни�
                                                ', ' + str(
                                            db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
+                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6], reply_markup=keyboard2)
                 db_worker.state_update(message.chat.id, 10)
             else:
                 db_worker = SQLighter(config.database_name)
@@ -231,10 +231,11 @@ def send_text(message):# Название функции не играет ни�
                                              caption=db_worker.show_info(profiles_list[-1])[0][1] +
                                                     ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                                     + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
-                                                     db_worker.show_info(profiles_list[-1])[0][6])
+                                                     db_worker.show_info(profiles_list[-1])[0][6],reply_markup=keyboard2)
                         profiles_dict.update({message.chat.id : profiles_list})
                         print(profiles_dict)
                         db_worker.state_update(message.chat.id,10)
+
                 elif preferences_check == [(2,)]:
                     profiles_list = []
                     for i in range(len(db_worker.id_list(message.chat.id))):
@@ -248,7 +249,7 @@ def send_text(message):# Название функции не играет ни�
                                            caption=db_worker.show_info(profiles_list[-1])[0][1] +
                                                    ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                                    + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
-                                                   db_worker.show_info(profiles_list[-1])[0][6])
+                                                   db_worker.show_info(profiles_list[-1])[0][6],reply_markup=keyboard2)
                         db_worker.state_update(message.chat.id, 10)
                         profiles_dict.update({message.chat.id : profiles_list})
                         print(profiles_dict)
@@ -264,12 +265,12 @@ def send_text(message):# Название функции не играет ни�
                                         caption=db_worker.show_info(profiles_list[-1])[0][1] +
                                                     ', ' + str(db_worker.show_info(profiles_list[-1])[0][3]) + ', '
                                                     + db_worker.show_info(profiles_list[-1])[0][4] + '\n' +
-                                                    db_worker.show_info(profiles_list[-1])[0][6])
+                                                    db_worker.show_info(profiles_list[-1])[0][6],reply_markup=keyboard2)
                         profiles_dict.update({message.chat.id : profiles_list})
                         print(profiles_dict)
                         db_worker.state_update(message.chat.id, 10)
         elif first_check == [(message.chat.id, 8)] and message.text == str(2):
-            bot.send_message(message.chat.id, '1(perezapolnit),2(smena opisaniya),3(smena foto) 4(anketi)')
+            bot.send_message(message.chat.id, '1(perezapolnit) \n2(smena opisaniya) \n3(smena foto) \n4(anketi)',reply_markup=keyboard5)
             db_worker.state_update(message.chat.id, 9)
             print(Ud_dict)
         elif first_check == [(message.chat.id, 9)] and message.text == str(1):
@@ -278,7 +279,7 @@ def send_text(message):# Название функции не играет ни�
             Ud_dict.update({message.chat.id:db_worker.show_info(message.chat.id)})
             print(Ud_dict)
         elif first_check == [(message.chat.id, 9)] and message.text == str(2):
-            bot.send_message(message.chat.id,'write a little about yourself or 1 to go back')
+            bot.send_message(message.chat.id,'write a little about yourself or 1 to go back',reply_markup=keyboard9)
             db_worker.state_update(message.chat.id, 14)
         elif first_check == [(message.chat.id, 9)] and message.text == str(3):
             bot.send_message(message.chat.id,'send new profile pic')
@@ -300,14 +301,14 @@ def send_text(message):# Название функции не играет ни�
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
                 else:
                     bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'')
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'',reply_markup=keyboard4)
                 db_worker.state_update(message.chat.id,17)
             else:
                 db_worker.state_update(message.chat.id, 9)
@@ -315,7 +316,7 @@ def send_text(message):# Название функции не играет ни�
                 bot.send_photo(message.chat.id, Ud_dict[message.chat.id][0][7],
                                caption=str(Ud_dict[message.chat.id][0][1]) + ', ' + str(Ud_dict[message.chat.id][0][3]) + ', ' +
                                        str(Ud_dict[message.chat.id][0][4]) + '\n' + str(Ud_dict[message.chat.id][0][6]))
-                bot.send_message(message.chat.id, '1(perezapolnit),2(smena opisaniya),3(smena foto), 4(anketi)')
+                bot.send_message(message.chat.id, '1(perezapolnit) \n2(smena opisaniya) \n3(smena foto) \n4(anketi)',reply_markup=keyboard5)
         elif first_check == [(message.chat.id, 14)] and message.text == str(1):
             if len(matches_dict[message.chat.id]) > 0:
                 if len(matches_dict[message.chat.id]) > 1:
@@ -329,14 +330,14 @@ def send_text(message):# Название функции не играет ни�
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
                 else:
                     bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'')
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'',reply_markup=keyboard4)
                 db_worker.state_update(message.chat.id,17)
             else:
                 db_worker.state_update(message.chat.id, 9)
@@ -344,8 +345,8 @@ def send_text(message):# Название функции не играет ни�
                 bot.send_photo(message.chat.id, Ud_dict[message.chat.id][0][7],
                                caption=str(Ud_dict[message.chat.id][0][1]) + ', ' + str(Ud_dict[message.chat.id][0][3]) + ', ' +
                                        str(Ud_dict[message.chat.id][0][4]) + '\n' + str(Ud_dict[message.chat.id][0][6]))
-                bot.send_message(message.chat.id, '1(perezapolnit),2(smena opisaniya),3(smena foto), 4(anketi)')
-        elif first_check == [(message.chat.id, 10,)] and message.text == str(1):
+                bot.send_message(message.chat.id, '1(perezapolnit) \n 2(smena opisaniya) \n 3(smena foto) \n 4(anketi)',reply_markup=keyboard5)
+        elif first_check == [(message.chat.id, 10,)] and (message.text == str(1) or message.text == '👍') :
             if len(profiles_dict[message.chat.id]) > 0:
                 db_worker.create_match(message.chat.id, profiles_dict[message.chat.id][-1])
                 matches_dict[profiles_dict[message.chat.id][-1]].append(message.chat.id)
@@ -353,7 +354,7 @@ def send_text(message):# Название функции не играет ни�
                 if db_worker.show_info(profiles_dict[message.chat.id][-1])[0][8] == 9 or db_worker.show_info(profiles_dict[message.chat.id][-1])[0][8] == 12 or db_worker.show_info(profiles_dict[message.chat.id][-1])[0][8] == 8:
                     db_worker.state_update(profiles_dict[message.chat.id][-1], 16)
                     print(db_worker.show_info(profiles_dict[message.chat.id][-1])[0][8])
-                    bot.send_message(profiles_dict[message.chat.id][-1],'1 for check matches, 2 i dont want to search people')
+                    bot.send_message(profiles_dict[message.chat.id][-1],'1 for check matches \n 2 i dont want to search people',reply_markup=keyboard10)
                 elif db_worker.show_info(profiles_dict[message.chat.id][-1])[0][8] == 15:
                     pass
                 else:
@@ -366,14 +367,14 @@ def send_text(message):# Название функции не играет ни�
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
                 else:
                     bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'')
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'',reply_markup=keyboard4)
                 db_worker.state_update(message.chat.id,17)
             else:
                 if len(profiles_dict[message.chat.id]) == 0:
@@ -385,14 +386,14 @@ def send_text(message):# Название функции не играет ни�
                                            db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-        elif first_check == [(message.chat.id, 10,)] and message.text == str(2):
+        elif first_check == [(message.chat.id, 10,)] and (message.text == str(2) or message.text == '💬'):
             if len(profiles_dict[message.chat.id]) == 0:
                 bot.send_message(message.chat.id, 'net anket(')
             else:
                 db_worker.state_update(message.chat.id, 11)
-                bot.send_message(message.chat.id, 'send message to chel or type (1) to go back')
+                bot.send_message(message.chat.id, 'send message to chel or type (1) to go back',reply_markup=keyboard9)
                 db_worker.state_update(message.chat.id, 11)
-        elif first_check == [(message.chat.id, 10,)] and message.text == str(3):
+        elif first_check == [(message.chat.id, 10,)] and (message.text == str(3) or message.text == '👎'):
             if len(profiles_dict[message.chat.id]) > 0 :
                 profiles_dict[message.chat.id].pop()
             if len(matches_dict[message.chat.id]) > 0 :
@@ -407,7 +408,7 @@ def send_text(message):# Название функции не играет ни�
                                            ', ' + str(
                                        db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                            + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                           db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                           db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
                 else:
                     bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                    caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
@@ -416,7 +417,7 @@ def send_text(message):# Название функции не играет ни�
                                            + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][
                                                6] + '\n' + 'user has got a message for you ' + str(db_worker.check_text(
-                                       matches_dict[message.chat.id][-1], message.chat.id)) + '')
+                                       matches_dict[message.chat.id][-1], message.chat.id)) + '',reply_markup=keyboard4)
                 db_worker.state_update(message.chat.id, 17)
             else:
                 if len(profiles_dict[message.chat.id]) == 0:
@@ -428,7 +429,7 @@ def send_text(message):# Название функции не играет ни�
                                            db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][4] + '\n' +
                                                db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
-        elif first_check == [(message.chat.id, 10,)] and message.text == str(4):
+        elif first_check == [(message.chat.id, 10,)] and (message.text == str(4) or message.text == '💤'):
             if len(matches_dict[message.chat.id]) > 0 :
                 if len(matches_dict[message.chat.id]) > 1:
                     bot.send_message(message.chat.id, 'someone interested in you ' + str(
@@ -441,7 +442,7 @@ def send_text(message):# Название функции не играет ни�
                                            ', ' + str(
                                        db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                            + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                           db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                           db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
                 else:
                     bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                    caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
@@ -450,10 +451,10 @@ def send_text(message):# Название функции не играет ни�
                                            + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][
                                                6] + '\n' + 'user has got a message for you ' + str(db_worker.check_text(
-                                       matches_dict[message.chat.id][-1], message.chat.id)) + '')
+                                       matches_dict[message.chat.id][-1], message.chat.id)) + '',reply_markup=keyboard4)
                 db_worker.state_update(message.chat.id, 17)
             else:
-                bot.send_message(message.chat.id,'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
+                bot.send_message(message.chat.id,'you are in main menu \n1 anketi \n2 redaktirovat \n3 mne hvatit',reply_markup=keyboard1)
                 db_worker.state_update(message.chat.id,12)
         elif first_check == [(message.chat.id, 11,)]:
             if message.text != str(1):
@@ -465,7 +466,7 @@ def send_text(message):# Название функции не играет ни�
                         db_worker.show_info(profiles_dict[message.chat.id][-1])[0][8] == 8:
                     db_worker.state_update(profiles_dict[message.chat.id][-1], 16)
                     print(db_worker.show_info(profiles_dict[message.chat.id][-1])[0][8])
-                    bot.send_message(profiles_dict[message.chat.id][-1], '1 for check matches, 2 i dont want to search people')
+                    bot.send_message(profiles_dict[message.chat.id][-1], '1 for check matches \n 2 i dont want to search people',reply_markup=keyboard10)
                 elif db_worker.show_info(profiles_dict[message.chat.id][-1])[0][8] == 15:
                     pass
                 else:
@@ -485,7 +486,7 @@ def send_text(message):# Название функции не играет ни�
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
                     else:
                         bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
@@ -494,7 +495,7 @@ def send_text(message):# Название функции не играет ни�
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
                                                db_worker.show_info(matches_dict[message.chat.id][-1])[0][
                                                    6] + '\n' + 'user has got a message for you ' + str(db_worker.check_text(
-                                           matches_dict[message.chat.id][-1], message.chat.id)) + '')
+                                           matches_dict[message.chat.id][-1], message.chat.id)) + '',reply_markup=keyboard4)
                     db_worker.state_update(message.chat.id, 17)
                 else:
                     if len(profiles_dict[message.chat.id]) == 0:
@@ -508,7 +509,7 @@ def send_text(message):# Название функции не играет ни�
                                                    db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
                                                        + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][
                                                            4] + '\n' +
-                                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
+                                                       db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6],reply_markup= keyboard2)
                         db_worker.state_update(message.chat.id, 10)
             else:
                 if len(matches_dict[message.chat.id]) > 0:
@@ -523,7 +524,7 @@ def send_text(message):# Название функции не играет ни�
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
                     else:
                         bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
@@ -532,7 +533,7 @@ def send_text(message):# Название функции не играет ни�
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
                                                db_worker.show_info(matches_dict[message.chat.id][-1])[0][
                                                    6] + '\n' + 'user has got a message for you ' + str(db_worker.check_text(
-                                           matches_dict[message.chat.id][-1], message.chat.id)) + '')
+                                           matches_dict[message.chat.id][-1], message.chat.id)) + '',reply_markup=keyboard4)
                     db_worker.state_update(message.chat.id, 17)
                 else:
                     db_worker.state_update(message.chat.id, 10)
@@ -543,21 +544,21 @@ def send_text(message):# Название функции не играет ни�
                                            db_worker.show_info(profiles_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(profiles_dict[message.chat.id][-1])[0][
                                                    4] + '\n' +
-                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6])
+                                               db_worker.show_info(profiles_dict[message.chat.id][-1])[0][6],reply_markup=keyboard2)
         elif first_check == [(message.chat.id, 12,)] and message.text == str(2):
-            bot.send_message(message.chat.id, '1(perezapolnit),2(smena opisaniya),3(smena foto) 4(anketi)')
+            bot.send_message(message.chat.id, '1(perezapolnit) \n 2(smena opisaniya) \n 3(smena foto) \n 4(anketi)',reply_markup=keyboard5)
             db_worker.state_update(message.chat.id, 9)
         elif first_check == [(message.chat.id, 12,)] and message.text == str(3):
-            bot.send_message(message.chat.id,'bbak')
+            bot.send_message(message.chat.id,'bbak',reply_markup=keyboard6)
             db_worker.state_update(message.chat.id, 15)
         elif first_check ==[(message.chat.id,15,)] :
-            if message.text != str(1):
-                bot.send_message(message.chat.id,'please type 1 to continue')
-            else:
+            if message.text == str(1) or message.text == '👍' :
                 bot.send_message(message.chat.id,'welcome back again!')
                 db_worker.state_update(message.chat.id, 12)
-                bot.send_message(message.chat.id, 'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
-        elif first_check == [(message.chat.id,16)]  and message.text == str(1):
+                bot.send_message(message.chat.id, 'you are in main menu \n1 anketi \n2 redaktirovat \n3 mne hvatit',reply_markup=keyboard1)
+            else:
+                bot.send_message(message.chat.id,'please type 1 to continue')
+        elif first_check == [(message.chat.id,16)]  and (message.text == str(1) or message.text == '👍'):
             if len(matches_dict[message.chat.id]) > 1:
                 bot.send_message(message.chat.id,
                                  'someone interested in you ' + str(len(matches_dict[message.chat.id]) - 1) + ' more')
@@ -569,7 +570,7 @@ def send_text(message):# Название функции не играет ни�
                                        ', ' + str(
                                    db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                        + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                       db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                       db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
             else:
                 bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
@@ -578,12 +579,12 @@ def send_text(message):# Название функции не играет ни�
                                        + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
                                        db_worker.show_info(matches_dict[message.chat.id][-1])[0][
                                            6] + '\n' + 'user has got a message for you ' + str(db_worker.check_text(
-                                   matches_dict[message.chat.id][-1], message.chat.id)) + '')
+                                   matches_dict[message.chat.id][-1], message.chat.id)) + '',reply_markup=keyboard4)
             db_worker.state_update(message.chat.id, 17)
-        elif first_check == [(message.chat.id,16)] and message.text == str(2):
-            bot.send_message(message.chat.id, '1(show '+str(len(matches_dict[message.chat.id]))+' people that interested in me), 2(i dont want to search people anymore)')
+        elif first_check == [(message.chat.id,16)] and (message.text == str(2) or message.text == '💤'):
+            bot.send_message(message.chat.id, '1(show '+str(len(matches_dict[message.chat.id]))+' people that interested in me) \n 2(i dont want to search people anymore)',reply_markup=keyboard4)
             db_worker.state_update(message.chat.id, 18)
-        elif first_check == [(message.chat.id, 17,)] and message.text == str(1):
+        elif first_check == [(message.chat.id, 17,)] and (message.text == str(1) or message.text == '👍'):
             if len(matches_dict[message.chat.id]) > 0:
                 bot.send_message(message.chat.id, 'molodec @'+db_worker.show_info(matches_dict[message.chat.id][-1])[0][9]+'')
                 bot.send_message(matches_dict[message.chat.id][-1],'ti toje @'+db_worker.show_info(message.chat.id)[0][9]+'')
@@ -596,7 +597,7 @@ def send_text(message):# Название функции не играет ни�
                 matches_dict[message.chat.id].pop()
             if len(matches_dict[message.chat.id]) == 0:
                 db_worker.state_update(message.chat.id, 12)
-                bot.send_message(message.chat.id, 'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
+                bot.send_message(message.chat.id, 'you are in main menu \n1 anketi \n2 redaktirovat \n3 mne hvatit',reply_markup=keyboard1)
             else:
                 if len(matches_dict[message.chat.id]) > 1:
                     bot.send_message(message.chat.id, 'someone interested in you '+str(len(matches_dict[message.chat.id])-1)+' more')
@@ -608,21 +609,21 @@ def send_text(message):# Название функции не играет ни�
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
                 else:
                     bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'')
-        elif first_check == [(message.chat.id, 17,)] and message.text == str(2):
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'',reply_markup=keyboard4)
+        elif first_check == [(message.chat.id, 17,)] and (message.text == str(2) or message.text == '👎'):
             if len(matches_dict[message.chat.id]) > 0:
                 db_worker.deletematch(matches_dict[message.chat.id][-1],message.chat.id)
                 matches_dict[message.chat.id].pop()
             if len(matches_dict[message.chat.id]) == 0:
                 db_worker.state_update(message.chat.id, 12)
-                bot.send_message(message.chat.id, 'you are in main menu 1 anketi , 2 redaktirovat, 3 mne hvatit')
+                bot.send_message(message.chat.id, 'you are in main menu \n1 anketi \n2 redaktirovat \n3 mne hvatit', reply_markup=keyboard1)
             else:
                 if len(matches_dict[message.chat.id]) > 1:
                     bot.send_message(message.chat.id, 'someone interested in you '+str(len(matches_dict[message.chat.id])-1)+' more')
@@ -634,18 +635,18 @@ def send_text(message):# Название функции не играет ни�
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
                 else:
                     bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                        caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
                                                ', ' + str(
                                            db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'')
-        elif first_check == [(message.chat.id, 17,)] and message.text == str(3):
-            bot.send_message(message.chat.id, '1(show'+str(len(matches_dict[message.chat.id]))+'people that interested in me), 2(i dont want to search people anymore)')
+                                               db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'user has got a message for you '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'',reply_markup=keyboard4)
+        elif first_check == [(message.chat.id, 17,)] and (message.text == str(3) or message.text =='💤'):
+            bot.send_message(message.chat.id, '1(show'+str(len(matches_dict[message.chat.id]))+'people that interested in me), \n2(i dont want to search people anymore)',reply_markup=keyboard10)
             db_worker.state_update(message.chat.id, 18)
-        elif first_check == [(message.chat.id, 18,)] and message.text == str(1):
+        elif first_check == [(message.chat.id, 18,)] and (message.text == str(1) or message.text == '👍'):
             if len(matches_dict[message.chat.id]) > 1:
                 bot.send_message(message.chat.id,
                                  'someone interested in you ' + str(len(matches_dict[message.chat.id]) - 1) + ' more')
@@ -657,7 +658,7 @@ def send_text(message):# Название функции не играет ни�
                                        ', ' + str(
                                    db_worker.show_info(matches_dict[message.chat.id][-1])[0][3]) + ', '
                                        + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
-                                       db_worker.show_info(matches_dict[message.chat.id][-1])[0][6])
+                                       db_worker.show_info(matches_dict[message.chat.id][-1])[0][6],reply_markup=keyboard4)
             else:
                 bot.send_photo(message.chat.id, db_worker.show_info(matches_dict[message.chat.id][-1])[0][7],
                                caption=db_worker.show_info(matches_dict[message.chat.id][-1])[0][1] +
@@ -666,10 +667,10 @@ def send_text(message):# Название функции не играет ни�
                                        + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
                                        db_worker.show_info(matches_dict[message.chat.id][-1])[0][
                                            6] + '\n' + 'user has got a message for you ' + str(db_worker.check_text(
-                                   matches_dict[message.chat.id][-1], message.chat.id)) + '')
+                                   matches_dict[message.chat.id][-1], message.chat.id)) + '',reply_markup=keyboard4)
             db_worker.state_update(message.chat.id, 17)
-        elif first_check == [(message.chat.id, 18,)] and message.text == str(2):
-            bot.send_message(message.chat.id, 'bbak')
+        elif first_check == [(message.chat.id, 18,)] and (message.text == str(2) or message.text == '💤'):
+            bot.send_message(message.chat.id, 'bbak',reply_markup= keyboard6)
             db_worker.state_update(message.chat.id, 15)
         else:
             bot.send_message(message.chat.id,'incorrect answer')
@@ -686,7 +687,7 @@ def profilepic(message):
             bot.send_photo(message.chat.id, Ud_dict[message.chat.id][0][7],
                                caption=str(Ud_dict[message.chat.id][0][1]) + ', ' + str(Ud_dict[message.chat.id][0][3]) + ', ' +
                                        str(Ud_dict[message.chat.id][0][4]) + '\n' + str(Ud_dict[message.chat.id][0][6]))
-            bot.send_message(message.chat.id,'now choose an option 1(anketi),2(perezapolnenie)')
+            bot.send_message(message.chat.id,'now choose an option 1(anketi),\n 2(perezapolnenie)',reply_markup= keyboard3)
             if message.chat.id in matches_dict:
                 pass
             else:
@@ -696,6 +697,24 @@ def profilepic(message):
 
 
             bot.send_message(Channel_Name, 'New rofl')
-keyboard1 = telebot.types.ReplyKeyboardMarkup()
-keyboard1.row('/test','/showmyid')
+keyboard1 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True)
+keyboard2 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True)
+keyboard3 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True)
+keyboard4 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True)
+keyboard5 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True)
+keyboard6 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True)
+keyboard7 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True)
+keyboard8 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True)
+keyboard9 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True)
+keyboard10 = telebot.types.ReplyKeyboardMarkup(resize_keyboard = True, one_time_keyboard = True)
+keyboard1.row('1','2','3')
+keyboard2.row('👍','💬','👎','💤')
+keyboard3.row('1','2')
+keyboard4.row('👍','👎','💤')
+keyboard5.row('1','2','3','4')
+keyboard6.row('👍')
+keyboard7.row('male', 'female')
+keyboard8.row('male','female','everyone')
+keyboard9.row('1')
+keyboard10.row('👍','💤')
 bot.polling(none_stop=True)
