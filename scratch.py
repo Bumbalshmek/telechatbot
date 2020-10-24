@@ -3,15 +3,6 @@ import config
 import random
 import sqlite3
 import cherrypy
-WEBHOOK_HOST = 'IP-адрес сервера, на котором запущен бот'
-WEBHOOK_PORT = 443  # 443, 80, 88 или 8443 (порт должен быть открыт!)
-WEBHOOK_LISTEN = '0.0.0.0'  # На некоторых серверах придется указывать такой же IP, что и выше
-
-WEBHOOK_SSL_CERT = './webhook_cert.pem'  # Путь к сертификату
-WEBHOOK_SSL_PRIV = './webhook_pkey.pem'  # Путь к приватному ключу
-
-WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
-WEBHOOK_URL_PATH = "/%s/" % (config.TOKEN)
 profiles_dict = dict()
 Ud_dict = dict()
 Ud = []
@@ -132,6 +123,29 @@ for i in range(db_worker.count_rows()):
 print(Ud_dict)
 print(matches_dict)
 bot = telebot.TeleBot(config.TOKEN)
+WEBHOOK_HOST = '46.181.240.60'
+WEBHOOK_PORT = 8443  # 443, 80, 88 или 8443 (порт должен быть открыт!)
+WEBHOOK_LISTEN = '0.0.0.0'  # На некоторых серверах придется указывать такой же IP, что и выше
+
+WEBHOOK_SSL_CERT = '/home/jager/Desktop/kak/telechatbot/webhook_cert.pem'  # Путь к сертификату
+WEBHOOK_SSL_PRIV = '/home/jager/Desktop/kak/telechatbot/webhook_pkey.pem'  # Путь к приватному ключу
+
+WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
+WEBHOOK_URL_PATH = "/%s/" % (config.TOKEN)
+class WebhookServer(object):
+    @cherrypy.expose
+    def index(self):
+        if 'content-length' in cherrypy.request.headers and \
+                        'content-type' in cherrypy.request.headers and \
+                        cherrypy.request.headers['content-type'] == 'application/json':
+            length = int(cherrypy.request.headers['content-length'])
+            json_string = cherrypy.request.body.read(length).decode("utf-8")
+            update = telebot.types.Update.de_json(json_string)
+            # Эта функция обеспечивает проверку входящего сообщения
+            bot.process_new_updates([update])
+            return ''
+        else:
+            raise cherrypy.HTTPError(403)
 @bot.message_handler(commands=["start"])
 def chenit(message):
     db_worker = SQLighter(config.database_name)
@@ -182,7 +196,7 @@ def send_text(message):# Название функции не играет ни�
         else:
             bot.send_message(message.chat.id,'Неверный ответ')
             #city block
-    elif message.chat.id in Ud_dict and  Ud_dict[message.chat.id][0][8] == 4:
+    elif message.chat.id in Ud_dict and Ud_dict[message.chat.id][0][8] == 4:
         if type(message.text) == str:
             Ud_dict[message.chat.id][0][4] = message.text
             Ud_dict[message.chat.id][0][8] = 5
@@ -280,7 +294,7 @@ def send_text(message):# Название функции не играет ни�
                         print(profiles_dict)
                         db_worker.state_update(message.chat.id, 10)
         elif first_check == [(message.chat.id, 8)] and message.text == str(2):
-            bot.send_message(message.chat.id, '1.Заполнить анкету заново\n2.Изменить описание\n3.Изменить фото профиля\n4.Посмотреть анкеты',reply_markup=keyboard5)
+            bot.send_message(message.chat.id, '1.Заполнить анкету заново\n2.Изменить описание\n3.Изменить фото анкеты\n4.Посмотреть анкеты',reply_markup=keyboard5)
             db_worker.state_update(message.chat.id, 9)
             print(Ud_dict)
         elif first_check == [(message.chat.id, 9)] and message.text == str(1):
@@ -289,7 +303,7 @@ def send_text(message):# Название функции не играет ни�
             Ud_dict.update({message.chat.id:db_worker.show_info(message.chat.id)})
             print(Ud_dict)
         elif first_check == [(message.chat.id, 9)] and message.text == str(2):
-            bot.send_message(message.chat.id,'Расскажи о себе немного',reply_markup=keyboard9)
+            bot.send_message(message.chat.id,'Расскажи о себе немного(1 чтобы вернуться)',reply_markup=keyboard9)
             db_worker.state_update(message.chat.id, 14)
         elif first_check == [(message.chat.id, 9)] and message.text == str(3):
             bot.send_message(message.chat.id,'Отправь новую фотографию профиля')
@@ -322,11 +336,11 @@ def send_text(message):# Название функции не играет ни�
                 db_worker.state_update(message.chat.id,17)
             else:
                 db_worker.state_update(message.chat.id, 9)
-                bot.send_message(message.chat.id,'Фото твоего профиля:',disable_notification = True)
+                bot.send_message(message.chat.id,'Твой профиль:',disable_notification = True)
                 bot.send_photo(message.chat.id, Ud_dict[message.chat.id][0][7],
                                caption=str(Ud_dict[message.chat.id][0][1]) + ', ' + str(Ud_dict[message.chat.id][0][3]) + ', ' +
                                        str(Ud_dict[message.chat.id][0][4]) + '\n' + str(Ud_dict[message.chat.id][0][6]))
-                bot.send_message(message.chat.id,'1.Заполнить анкету заново\n2.Изменить описание\n3.Изменить фото профиля\n4.Посмотреть анкеты',reply_markup=keyboard5)
+                bot.send_message(message.chat.id,'1.Заполнить анкету заново\n2.Изменить описание\n3.Изменить фото анкеты\n4.Посмотреть анкеты',reply_markup=keyboard5)
         elif first_check == [(message.chat.id, 14)] and message.text == str(1):
             if len(matches_dict[message.chat.id]) > 0:
                 if len(matches_dict[message.chat.id]) > 1:
@@ -355,7 +369,7 @@ def send_text(message):# Название функции не играет ни�
                 bot.send_photo(message.chat.id, Ud_dict[message.chat.id][0][7],
                                caption=str(Ud_dict[message.chat.id][0][1]) + ', ' + str(Ud_dict[message.chat.id][0][3]) + ', ' +
                                        str(Ud_dict[message.chat.id][0][4]) + '\n' + str(Ud_dict[message.chat.id][0][6]))
-                bot.send_message(message.chat.id,'1.Заполнить анкету заново\n2.Изменить описание\n3.Изменить фото профиля \n4.Посмотреть анкеты',reply_markup=keyboard5)
+                bot.send_message(message.chat.id,'1.Заполнить анкету заново\n2.Изменить описание\n3.Изменить фото анкеты\n4.Посмотреть анкеты',reply_markup=keyboard5)
         elif first_check == [(message.chat.id, 10,)] and (message.text == str(1) or message.text == '👍') :
             if len(profiles_dict[message.chat.id]) > 0:
                 db_worker.create_match(message.chat.id, profiles_dict[message.chat.id][-1])
@@ -562,7 +576,7 @@ def send_text(message):# Название функции не играет ни�
                                db_worker.show_info(message.chat.id)[0][3]) + ', '
                                    + db_worker.show_info(message.chat.id)[0][4] + '\n' +
                                    db_worker.show_info(message.chat.id)[0][6], )
-            bot.send_message(message.chat.id, '1.Заполнить анкету заново\n2.Изменить описание\n3.Изменить фото профиля\n4.Посмотреть анкеты',reply_markup=keyboard5)
+            bot.send_message(message.chat.id, '1.Заполнить анкету заново\n2.Изменить описание\n3.Изменить фото анкеты\n4.Посмотреть анкеты',reply_markup=keyboard5)
             db_worker.state_update(message.chat.id, 9)
         elif first_check == [(message.chat.id, 12,)] and message.text == str(3):
             bot.send_message(message.chat.id,'Я буду скучать по тебе',reply_markup=keyboard6)
@@ -598,7 +612,7 @@ def send_text(message):# Название функции не играет ни�
                                    matches_dict[message.chat.id][-1], message.chat.id)) + '',reply_markup=keyboard4)
             db_worker.state_update(message.chat.id, 17)
         elif first_check == [(message.chat.id,16)] and (message.text == str(2) or message.text == '💤'):
-            bot.send_message(message.chat.id, '1.Показать '+str(len(matches_dict[message.chat.id]))+' человек(a) которому(ым) ты понравился(ась)\n 2.Я не хочу больше никого искать',reply_markup=keyboard4)
+            bot.send_message(message.chat.id, '1.Показать '+str(len(matches_dict[message.chat.id]))+' человек(a) которому(ым) ты понравился(ась)\n2.Я не хочу больше никого искать',reply_markup=keyboard4)
             db_worker.state_update(message.chat.id, 18)
         elif first_check == [(message.chat.id, 17,)] and (message.text == str(1) or message.text == '👍'):
             if len(matches_dict[message.chat.id]) > 0:
@@ -660,7 +674,7 @@ def send_text(message):# Название функции не играет ни�
                                                + db_worker.show_info(matches_dict[message.chat.id][-1])[0][4] + '\n' +
                                                db_worker.show_info(matches_dict[message.chat.id][-1])[0][6] + '\n' + 'Пользователь оставил тебе сообщение: '+str(db_worker.check_text(matches_dict[message.chat.id][-1], message.chat.id)) +'',reply_markup=keyboard4)
         elif first_check == [(message.chat.id, 17,)] and (message.text == str(3) or message.text =='💤'):
-            bot.send_message(message.chat.id, '1.Показать '+str(len(matches_dict[message.chat.id]))+' человек(a) которому(ым) ты понравился(ась)\n 2.Я не хочу больше никого искать',reply_markup=keyboard4)
+            bot.send_message(message.chat.id, '1.Показать '+str(len(matches_dict[message.chat.id]))+' человек(a) которому(ым) ты понравился(ась)\n2.Я не хочу больше никого искать',reply_markup=keyboard4)
             db_worker.state_update(message.chat.id, 18)
         elif first_check == [(message.chat.id, 18,)] and (message.text == str(1) or message.text == '👍'):
             if len(matches_dict[message.chat.id]) > 1:
@@ -733,4 +747,18 @@ keyboard7.row('Парень', 'Девушка')
 keyboard8.row('Парни','Девушки','Все равно')
 keyboard9.row('1')
 keyboard10.row('👍','💤')
-bot.polling(none_stop=True)
+bot.remove_webhook()
+
+ # Ставим заново вебхук
+bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
+                certificate=open(WEBHOOK_SSL_CERT, 'r'))
+cherrypy.config.update({
+    'server.socket_host': WEBHOOK_LISTEN,
+    'server.socket_port': WEBHOOK_PORT,
+    'server.ssl_module': 'builtin',
+    'server.ssl_certificate': WEBHOOK_SSL_CERT,
+    'server.ssl_private_key': WEBHOOK_SSL_PRIV
+})
+
+ # Собственно, запуск!
+cherrypy.quickstart(WebhookServer(), WEBHOOK_URL_PATH, {'/': {}})
