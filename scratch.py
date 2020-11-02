@@ -57,6 +57,7 @@ class SQLighter:
         with self.connection:
             information = self.cursor.execute('SELECT * FROM ' + config.table_name +' WHERE user_id = "'+str(user_id)+ '"').fetchall()
             information[0] = list(information[0])
+            print(information)
             return information
     def state_update(self,user_id,new_state):
         with self.connection:
